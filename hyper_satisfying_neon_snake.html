@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PRISM VIPER // Hyper-Juicy Arcade Snake</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Orbitron, Rajdhani & Share Tech Mono for authentic CRT arcade UI -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <!-- FontAwesome for crisp icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #070913;
+            --accent: #00ffcc;
+            --accent-glow: rgba(0, 255, 204, 0.5);
+            --text-main: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            font-family: 'Share Tech Mono', monospace;
+            overflow: hidden;
+            touch-action: none;
+            transition: background-color 0.4s ease;
+        }
+
+        .font-display {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .font-mono-tech {
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        /* Crisp Retro CRT Terminal Panels */
+        .crt-panel {
+            background: rgba(6, 9, 18, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 0 24px rgba(0, 0, 0, 0.85), inset 0 0 18px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+
+        /* Corner Crosshair Brackets for Retro Arcade Frame */
+        .crt-frame {
+            position: relative;
+            background: rgba(5, 8, 15, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.9), inset 0 0 25px rgba(0, 255, 204, 0.05);
+        }
+
+        .crt-frame::before,
+        .crt-frame::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-color: var(--accent);
+            pointer-events: none;
+        }
+
+        .crt-frame::before {
+            top: -1px;
+            left: -1px;
+            border-top: 2px solid var(--accent);
+            border-left: 2px solid var(--accent);
+        }
+
+        .crt-frame::after {
+            bottom: -1px;
+            right: -1px;
+            border-bottom: 2px solid var(--accent);
+            border-right: 2px solid var(--accent);
+        }
+
+        /* Hardware Arcade Coin-Op Button */
+        .btn-arcade {
+            position: relative;
+            background: rgba(0, 255, 204, 0.08);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            box-shadow: 0 0 16px rgba(0, 255, 204, 0.2), inset 0 0 12px rgba(0, 255, 204, 0.12);
+            transition: all 0.12s steps(2);
+            text-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .btn-arcade:hover {
+            background: var(--accent);
+            color: #050811;
+            box-shadow: 0 0 24px var(--accent);
+            text-shadow: none;
+        }
+
+        .btn-arcade:active {
+            transform: translateY(2px);
+        }
+
+        /* Retro Hardware Selects & Micro Buttons */
+        .crt-input {
+            background: #060a14;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #e2e8f0;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .crt-input:hover, .crt-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+            outline: none;
+        }
+
+        /* D-Pad Buttons */
+        .dpad-btn {
+            background: rgba(10, 15, 28, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+            transition: transform 0.06s ease, background 0.1s ease, border-color 0.1s ease;
+        }
+
+        .dpad-btn:active, .dpad-btn.active-press {
+            transform: scale(0.92);
+            background: var(--accent);
+            color: #000;
+            border-color: #fff;
+            box-shadow: 0 0 16px var(--accent);
+        }
+
+        /* Score Pop Animation */
+        @keyframes scorePop {
+            0% { transform: scale(1); }
+            40% { transform: scale(1.28); color: var(--accent); }
+            100% { transform: scale(1); }
+        }
+
+        .animate-pop {
+            animation: scorePop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes crtBlink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0.2; }
+        }
+
+        .blink-slow {
+            animation: crtBlink 1.4s infinite;
+        }
+
+        /* Canvas Container Glow */
+        #canvas-wrapper {
+            position: relative;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.85), 0 0 18px var(--accent-glow);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            transition: box-shadow 0.4s ease, border-color 0.3s ease;
+        }
+
+        /* Authentic CRT Scanline + Phosphor Grain Overlay (Sits over both Canvas & Menu) */
+        .scanlines {
+            background:
+                linear-gradient(
+                    to bottom,
+                    rgba(255, 255, 255, 0),
+                    rgba(255, 255, 255, 0) 50%,
+                    rgba(0, 0, 0, 0.32) 50%,
+                    rgba(0, 0, 0, 0.32)
+                ),
+                radial-gradient(
+                    circle at center,
+                    transparent 58%,
+                    rgba(0, 0, 0, 0.55) 100%
+                );
+            background-size: 100% 4px, 100% 100%;
+            pointer-events: none;
+        }
+
+        /* Subtle Phosphor Dot Matrix Pattern for Menu Background */
+        .retro-grid-bg {
+            background-color: rgba(5, 8, 15, 0.76);
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 16px 16px;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col items-center justify-between p-2 sm:p-4 select-none overflow-hidden">
+
+    <!-- TOP HUD BAR -->
+    <header class="w-full max-w-2xl flex flex-col gap-1.5 z-20 shrink-0">
+        <div class="crt-panel rounded-md px-3 py-2 sm:px-4 sm:py-2.5 flex items-center justify-between gap-2">
+            <!-- Brand & System Selectors -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="w-2.5 h-2.5 rounded-none" id="theme-dot" style="background: var(--accent); box-shadow: 0 0 8px var(--accent);"></div>
+                <h1 class="font-display font-black text-sm sm:text-lg tracking-widest text-white hidden xs:block">
+                    PRISM<span style="color: var(--accent)">_VIPER</span>
+                </h1>
+                <!-- Theme Selector -->
+                <select id="theme-select" aria-label="Visual Theme" class="crt-input text-[11px] sm:text-xs uppercase tracking-wider rounded px-2 py-1 cursor-pointer">
+                    <option value="cyber">SYS: CYBER</option>
+                    <option value="synth">SYS: SYNTH</option>
+                    <option value="matrix">SYS: MATRIX</option>
+                    <option value="solar">SYS: SOLAR</option>
+                </select>
+                <!-- Speed / Control Feel Selector -->
+                <select id="speed-select" aria-label="Control Feel & Speed" class="crt-input text-[11px] sm:text-xs uppercase tracking-wider rounded px-2 py-1 cursor-pointer" title="Control Responsiveness & Speed">
+                    <option value="classic">SPD: CLASSIC</option>
+                    <option value="google" selected>SPD: CRISP</option>
+                    <option value="hyper">SPD: HYPER</option>
+                </select>
+            </div>
+
+            <!-- Score & Combo Readout -->
+            <div class="flex items-center gap-3 sm:gap-5">
+                <!-- Combo Readout -->
+                <div class="flex flex-col items-center min-w-[54px]">
+                    <span class="text-[9px] uppercase tracking-widest text-slate-400">MULT</span>
+                    <div class="flex items-baseline gap-1">
+                        <span id="combo-val" class="font-mono-tech font-bold text-sm sm:text-base text-amber-400">1.0x</span>
+                    </div>
+                    <!-- Combo decay micro bar -->
+                    <div class="w-12 h-1 bg-slate-900 border border-slate-700/80 overflow-hidden mt-0.5">
+                        <div id="combo-bar" class="h-full bg-amber-400 w-0 transition-none"></div>
+                    </div>
+                </div>
+
+                <!-- Current Score -->
+                <div class="flex flex-col items-end">
+                    <span class="text-[9px] uppercase tracking-widest text-slate-400">SCORE</span>
+                    <span id="score-val" class="font-mono-tech font-bold text-lg sm:text-2xl leading-none text-white">0</span>
+                </div>
+
+                <!-- High Score -->
+                <div class="flex flex-col items-end border-l border-slate-800 pl-3 sm:pl-4">
+                    <span class="text-[9px] uppercase tracking-widest text-slate-400">HI-SCORE</span>
+                    <span id="best-val" class="font-mono-tech font-bold text-base sm:text-xl text-slate-300 leading-none">0</span>
+                </div>
+            </div>
+
+            <!-- Quick Utility Controls -->
+            <div class="flex items-center gap-1.5">
+                <button id="btn-wall-mode" title="Toggle Portal Walls vs Solid Walls" class="crt-input w-7 h-7 sm:w-8 sm:h-8 rounded flex items-center justify-center text-slate-200">
+                    <i class="fa-solid fa-infinity text-xs" id="icon-wall-mode" style="color: var(--accent)"></i>
+                </button>
+                <button id="btn-mute" title="Toggle Sound (M)" class="crt-input w-7 h-7 sm:w-8 sm:h-8 rounded flex items-center justify-center text-slate-200">
+                    <i class="fa-solid fa-volume-high text-xs" id="icon-mute"></i>
+                </button>
+                <button id="btn-pause" title="Pause Game (P / Space)" class="crt-input w-7 h-7 sm:w-8 sm:h-8 rounded flex items-center justify-center text-slate-200">
+                    <i class="fa-solid fa-pause text-xs" id="icon-pause"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Active Power-Up Status Bar -->
+        <div id="powerup-banner" class="hidden crt-panel rounded px-3 py-1 flex items-center justify-between text-xs tracking-widest uppercase">
+            <div class="flex items-center gap-2">
+                <span id="powerup-icon" class="font-mono-tech font-bold" style="color: var(--accent)">[SYS]</span>
+                <span id="powerup-name" class="text-white">OVERDRIVE</span>
+            </div>
+            <div class="w-36 sm:w-48 h-1.5 bg-slate-900 border border-slate-700 overflow-hidden">
+                <div id="powerup-bar" class="h-full bg-cyan-400 w-full"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN ARENA WRAPPER -->
+    <main class="relative flex-1 w-full flex items-center justify-center my-1 overflow-hidden">
+        <div id="canvas-wrapper" class="relative rounded-lg overflow-hidden bg-slate-950 flex items-center justify-center">
+            <canvas id="game-canvas" class="block"></canvas>
+
+            <!-- START / PAUSE / GAME OVER RETRO CRT TERMINAL OVERLAY -->
+            <div id="overlay-modal" class="retro-grid-bg absolute inset-0 flex flex-col items-center justify-center p-4 sm:p-6 text-center z-20 transition-opacity duration-200">
+                <div class="crt-frame max-w-sm w-full p-5 sm:p-6 flex flex-col items-center">
+                    
+                    <!-- Top System Telemetry Header -->
+                    <div class="w-full flex items-center justify-between text-[10px] tracking-[0.2em] text-slate-400 border-b border-slate-800 pb-2 mb-4 uppercase">
+                        <span id="modal-badge" style="color: var(--accent)">SYS.BOOT // REV 2.4</span>
+                        <span class="blink-slow">● READY</span>
+                    </div>
+
+                    <!-- Phosphor CRT Title -->
+                    <h2 id="modal-title" class="font-display font-black text-2xl sm:text-4xl tracking-widest mb-1.5 text-white" style="text-shadow: 0 0 18px var(--accent-glow);">
+                        PRISM VIPER
+                    </h2>
+                    <p id="modal-subtitle" class="text-slate-400 text-xs sm:text-sm mb-4 tracking-wide leading-relaxed">
+                        CHAIN SIGNAL CORES BEFORE DECAY TO AMPLIFY SCORE MULTIPLIER.
+                    </p>
+
+                    <!-- Final Stats Readout (Shown on Game Over) -->
+                    <div id="gameover-stats" class="hidden w-full grid grid-cols-3 gap-1 mb-4 bg-black/60 p-2.5 border border-slate-800">
+                        <div class="flex flex-col">
+                            <span class="text-[9px] uppercase tracking-widest text-slate-500">SCORE</span>
+                            <span id="stat-score" class="font-mono-tech font-bold text-base sm:text-lg text-white">0</span>
+                        </div>
+                        <div class="flex flex-col border-x border-slate-800">
+                            <span class="text-[9px] uppercase tracking-widest text-slate-500">PEAK MULT</span>
+                            <span id="stat-combo" class="font-mono-tech font-bold text-base sm:text-lg text-amber-400">1.0x</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[9px] uppercase tracking-widest text-slate-500">LENGTH</span>
+                            <span id="stat-length" class="font-mono-tech font-bold text-base sm:text-lg" style="color: var(--accent)">4</span>
+                        </div>
+                    </div>
+
+                    <!-- Boundary Hardware Switch -->
+                    <div class="w-full flex items-center justify-between bg-black/50 px-3 py-2 border border-slate-800 mb-3 text-xs">
+                        <span class="text-slate-400 uppercase tracking-wider text-[11px]">
+                            BOUNDARY MODE:
+                        </span>
+                        <button id="modal-wall-toggle" class="px-2.5 py-0.5 bg-cyan-950/60 border border-cyan-400/50 text-cyan-300 text-[11px] tracking-widest uppercase hover:bg-cyan-900/60 transition">
+                            [ PORTAL WRAP ]
+                        </button>
+                    </div>
+
+                    <!-- Retro Arcade Schematic Legend -->
+                    <div class="w-full grid grid-cols-2 gap-x-3 gap-y-2 text-left text-[11px] bg-black/50 p-3 border border-slate-800/90 mb-5 uppercase tracking-wider">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 bg-rose-500 shadow-[0_0_8px_#f43f5e] inline-block shrink-0"></span>
+                            <span class="text-slate-300">CORE <span class="text-slate-500">+10/X</span></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 bg-amber-400 shadow-[0_0_8px_#fbbf24] inline-block shrink-0"></span>
+                            <span class="text-slate-300">GOLD <span class="text-slate-500">+50/2X</span></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 bg-sky-400 shadow-[0_0_8px_#38bdf8] inline-block shrink-0"></span>
+                            <span class="text-slate-300">CHRONO <span class="text-slate-500">SLOW</span></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 bg-purple-400 shadow-[0_0_8px_#c084fc] inline-block shrink-0"></span>
+                            <span class="text-slate-300">MAGNET <span class="text-slate-500">PULL</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Coin-Op Launch Trigger -->
+                    <button id="btn-start" class="btn-arcade w-full py-3 rounded-none font-display font-bold text-sm sm:text-base tracking-[0.2em] uppercase cursor-pointer">
+                        [ INITIALIZE VIPER ]
+                    </button>
+
+                    <div class="mt-2.5 text-[10px] tracking-[0.18em] text-slate-500 uppercase">
+                        PRESS <span class="text-slate-300">SPACE</span> OR <span class="text-slate-300">WASD / ARROWS</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Authentic CRT Scanline + Vignette Overlay (Covers BOTH Game & Start Menu!) -->
+            <div class="scanlines absolute inset-0 z-30"></div>
+        </div>
+    </main>
+
+    <!-- BOTTOM CONTROLS: ON-SCREEN D-PAD & HINTS -->
+    <footer class="w-full max-w-2xl flex flex-col items-center justify-center z-20 shrink-0">
+        <!-- Interactive Touch D-Pad (Visible on mobile/tablet) -->
+        <div class="grid grid-cols-3 gap-1.5 w-40 sm:w-44 md:hidden my-1">
+            <div></div>
+            <button data-dir="UP" aria-label="Up" class="dpad-btn h-11 rounded flex items-center justify-center text-white text-base">
+                <i class="fa-solid fa-caret-up"></i>
+            </button>
+            <div></div>
+            <button data-dir="LEFT" aria-label="Left" class="dpad-btn h-11 rounded flex items-center justify-center text-white text-base">
+                <i class="fa-solid fa-caret-left"></i>
+            </button>
+            <button data-dir="DOWN" aria-label="Down" class="dpad-btn h-11 rounded flex items-center justify-center text-white text-base">
+                <i class="fa-solid fa-caret-down"></i>
+            </button>
+            <button data-dir="RIGHT" aria-label="Right" class="dpad-btn h-11 rounded flex items-center justify-center text-white text-base">
+                <i class="fa-solid fa-caret-right"></i>
+            </button>
+        </div>
+
+        <!-- Desktop Control Hints -->
+        <div class="hidden md:flex items-center justify-between w-full px-2 py-1 text-[11px] text-slate-400 tracking-wider uppercase">
+            <div class="flex items-center gap-4">
+                <span><kbd class="px-1.5 py-0.5 bg-slate-900 text-slate-200 border border-slate-700">WASD</kbd> / <kbd class="px-1.5 py-0.5 bg-slate-900 text-slate-200 border border-slate-700">ARROWS</kbd> VECTOR</span>
+                <span><kbd class="px-1.5 py-0.5 bg-slate-900 text-slate-200 border border-slate-700">SPACE</kbd> HALT</span>
+                <span><kbd class="px-1.5 py-0.5 bg-slate-900 text-slate-200 border border-slate-700">M</kbd> AUDIO</span>
+            </div>
+            <div id="footer-mode-indicator" style="color: var(--accent)">
+                BOUNDARY: PORTAL WRAP
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        /**
+         * ============================================================================
+         * 1. PROCEDURAL WEB AUDIO SYNTHESIZER (No external audio files needed)
+         * ============================================================================
+         */
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+                // Pentatonic scale frequencies for satisfying harmonic combo chimes
+                this.scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00, 1046.50];
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) {
+                        this.ctx = new AudioCtx();
+                    }
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            toggleMute() {
+                this.muted = !this.muted;
+                return this.muted;
+            }
+
+            // Subtle crisp whoosh/tick when turning
+            playTurn(dirIndex = 0) {
+                if (this.muted || !this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                const pitches = [150, 175, 160, 190];
+                const baseFreq = pitches[dirIndex % 4];
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(baseFreq, now);
+                osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.4, now + 0.045);
+
+                gain.gain.setValueAtTime(0.06, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.05);
+            }
+
+            // Harmonic ascending chime based on current combo multiplier
+            playEat(comboLevel = 1) {
+                if (this.muted || !this.ctx) return;
+                const now = this.ctx.currentTime;
+
+                const idx = Math.min(Math.floor(comboLevel) - 1, this.scale.length - 1);
+                const freq = this.scale[Math.max(0, idx)];
+
+                // Primary melodic tone
+                const osc1 = this.ctx.createOscillator();
+                const gain1 = this.ctx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(freq, now);
+                osc1.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.16);
+
+                gain1.gain.setValueAtTime(0.18, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+                osc1.connect(gain1);
+                gain1.connect(this.ctx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.23);
+
+                // Sparkle overtone
+                const osc2 = this.ctx.createOscillator();
+                const gain2 = this.ctx.createGain();
+                osc2.type = 'triangle';
+                osc2.frequency.setValueAtTime(freq * 2, now + 0.03);
+                osc2.frequency.exponentialRampToValueAtTime(freq * 3, now + 0.18);
+
+                gain2.gain.setValueAtTime(0.09, now + 0.03);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.20);
+
+                osc2.connect(gain2);
+                gain2.connect(this.ctx.destination);
+                osc2.start(now + 0.03);
+                osc2.stop(now + 0.21);
+            }
+
+            // Rich arpeggio for special bonus items
+            playBonus(type) {
+                if (this.muted || !this.ctx) return;
+                const now = this.ctx.currentTime;
+                const notes = type === 'GOLD' ? [523.25, 659.25, 783.99, 1046.5] : [392.00, 493.88, 587.33, 783.99];
+
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    const start = now + i * 0.045;
+                    osc.frequency.setValueAtTime(freq, start);
+
+                    gain.gain.setValueAtTime(0.15, start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.25);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(start);
+                    osc.stop(start + 0.26);
+                });
+            }
+
+            // Dramatic sub-bass drop + synth sweep on Game Over
+            playGameOver() {
+                if (this.muted || !this.ctx) return;
+                const now = this.ctx.currentTime;
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(190, now);
+                osc.frequency.exponentialRampToValueAtTime(38, now + 0.55);
+
+                gain.gain.setValueAtTime(0.22, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.62);
+            }
+        }
+
+        /**
+         * ============================================================================
+         * 2. VISUAL THEMES CONFIGURATION
+         * ============================================================================
+         */
+        const THEMES = {
+            cyber: {
+                name: 'Cyber Neon',
+                bg: '#060913',
+                grid: 'rgba(0, 255, 204, 0.07)',
+                accent: '#00ffcc',
+                accentGlow: 'rgba(0, 255, 204, 0.45)',
+                snakeHead: '#ffffff',
+                snakeStart: [0, 255, 204],   // Cyan
+                snakeEnd: [59, 130, 246],    // Electric Blue
+                foodCore: '#ff2a85',
+                foodGlow: '#ff2a85'
+            },
+            synth: {
+                name: 'Synthwave',
+                bg: '#120524',
+                grid: 'rgba(255, 0, 160, 0.09)',
+                accent: '#ff00a0',
+                accentGlow: 'rgba(255, 0, 160, 0.45)',
+                snakeHead: '#fffbeb',
+                snakeStart: [255, 0, 160],   // Hot Magenta
+                snakeEnd: [255, 165, 0],     // Sunset Orange
+                foodCore: '#00f5d4',
+                foodGlow: '#00f5d4'
+            },
+            matrix: {
+                name: 'Matrix Bio',
+                bg: '#030d06',
+                grid: 'rgba(34, 197, 94, 0.09)',
+                accent: '#22c55e',
+                accentGlow: 'rgba(34, 197, 94, 0.45)',
+                snakeHead: '#ecfdf5',
+                snakeStart: [74, 222, 128],  // Neon Green
+                snakeEnd: [16, 185, 129],    // Emerald
+                foodCore: '#facc15',
+                foodGlow: '#facc15'
+            },
+            solar: {
+                name: 'Solar Flare',
+                bg: '#140705',
+                grid: 'rgba(251, 146, 60, 0.08)',
+                accent: '#fb923c',
+                accentGlow: 'rgba(251, 146, 60, 0.45)',
+                snakeHead: '#ffffff',
+                snakeStart: [253, 224, 71],  // Bright Yellow
+                snakeEnd: [239, 68, 68],     // Crimson Red
+                foodCore: '#38bdf8',
+                foodGlow: '#38bdf8'
+            }
+        };
+
+        /**
+         * ============================================================================
+         * 3. MAIN GAME ENGINE
+         * ============================================================================
+         */
+        class PrismViperGame {
+            constructor() {
+                this.canvas = document.getElementById('game-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.wrapper = document.getElementById('canvas-wrapper');
+                this.sound = new SoundEngine();
+
+                // Logical Grid Dimensions (21x21 provides a crisp center cell)
+                this.gridCount = 21;
+                this.cellSize = 24;
+
+                // Theme State
+                this.themeKey = 'cyber';
+                this.theme = THEMES[this.themeKey];
+
+                // Game Rules & Settings
+                this.portalWalls = true; // true = wrap around edges, false = lethal solid walls
+                this.state = 'MENU';     // 'MENU', 'PLAYING', 'PAUSED', 'GAMEOVER'
+
+                // Score & Combo State
+                this.score = 0;
+                this.bestScore = parseInt(localStorage.getItem('prismViperBest') || '0', 10);
+                this.combo = 1;
+                this.maxCombo = 1;
+                this.comboTimer = 0;
+                this.comboMaxDuration = 4200; // ms before combo decays
+
+                // Active Power-Up State
+                this.activePower = null; // { type: 'SLOW' | 'MAGNET', timer: ms, max: ms }
+
+                // Visual Effects Lists
+                this.particles = [];
+                this.floatingTexts = [];
+                this.shockwaves = [];
+                this.trailParticles = [];
+                this.pivotEffects = [];
+                this.shakeIntensity = 0;
+                this.boardPulse = 0;
+                this.headSquash = 0; // Visual squash & stretch on crisp turns
+
+                // Timing, Control Feel & Google-Snake Sub-Tick Responsiveness
+                this.speedPreset = 'google';
+                this.speedPresets = {
+                    classic: { baseInterval: 108, snapWindow: 0.30, fastForward: 0.65, coyoteMs: 42 },
+                    google:  { baseInterval: 88,  snapWindow: 0.36, fastForward: 0.55, coyoteMs: 52 },
+                    hyper:   { baseInterval: 70,  snapWindow: 0.38, fastForward: 0.50, coyoteMs: 55 }
+                };
+                this.baseMoveInterval = this.speedPresets.google.baseInterval;
+                this.moveAccumulator = 0;
+                this.turnedThisStep = false;
+                this.coyoteTimer = 0; // Grace window before lethal wall/body crash
+                this.lastFrameTime = performance.now();
+
+                this.initDOM();
+                this.resizeCanvas();
+                this.resetEntities();
+
+                window.addEventListener('resize', () => this.resizeCanvas());
+                requestAnimationFrame((t) => this.loop(t));
+            }
+
+            initDOM() {
+                // UI Elements
+                this.elScore = document.getElementById('score-val');
+                this.elBest = document.getElementById('best-val');
+                this.elCombo = document.getElementById('combo-val');
+                this.elComboBar = document.getElementById('combo-bar');
+                this.elOverlay = document.getElementById('overlay-modal');
+                this.elModalTitle = document.getElementById('modal-title');
+                this.elModalSub = document.getElementById('modal-subtitle');
+                this.elModalBadge = document.getElementById('modal-badge');
+                this.elGameoverStats = document.getElementById('gameover-stats');
+                this.elBtnStart = document.getElementById('btn-start');
+
+                this.elBest.textContent = this.bestScore;
+
+                // Theme Selector
+                const themeSelect = document.getElementById('theme-select');
+                themeSelect.addEventListener('change', (e) => {
+                    this.setTheme(e.target.value);
+                    themeSelect.blur();
+                });
+
+                // Speed / Control Feel Selector
+                const speedSelect = document.getElementById('speed-select');
+                speedSelect.addEventListener('change', (e) => {
+                    this.speedPreset = e.target.value;
+                    const cfg = this.speedPresets[this.speedPreset] || this.speedPresets.google;
+                    this.baseMoveInterval = cfg.baseInterval;
+                    speedSelect.blur();
+                });
+
+                // Start / Resume Button
+                this.elBtnStart.addEventListener('click', () => {
+                    this.sound.init();
+                    if (this.state === 'PAUSED') {
+                        this.togglePause();
+                    } else {
+                        this.startGame();
+                    }
+                });
+
+                // Mute Button
+                document.getElementById('btn-mute').addEventListener('click', () => {
+                    this.sound.init();
+                    const muted = this.sound.toggleMute();
+                    const icon = document.getElementById('icon-mute');
+                    icon.className = muted ? 'fa-solid fa-volume-xmark text-xs sm:text-sm text-rose-400' : 'fa-solid fa-volume-high text-xs sm:text-sm';
+                });
+
+                // Pause Button
+                document.getElementById('btn-pause').addEventListener('click', () => {
+                    if (this.state === 'PLAYING' || this.state === 'PAUSED') {
+                        this.togglePause();
+                    }
+                });
+
+                // Wall Mode Toggle (HUD & Modal)
+                const toggleWalls = () => {
+                    this.portalWalls = !this.portalWalls;
+                    this.updateWallModeUI();
+                };
+                document.getElementById('btn-wall-mode').addEventListener('click', toggleWalls);
+                document.getElementById('modal-wall-toggle').addEventListener('click', toggleWalls);
+
+                // Keyboard Input (Zero-latency keydown, ignoring OS key-repeat flood)
+                window.addEventListener('keydown', (e) => this.handleKeyDown(e));
+
+                // On-Screen Touch D-Pad Input
+                document.querySelectorAll('.dpad-btn').forEach(btn => {
+                    const triggerDir = (e) => {
+                        e.preventDefault();
+                        this.sound.init();
+                        const dir = btn.getAttribute('data-dir');
+                        this.queueDirection(dir);
+                        btn.classList.add('active-press');
+                        setTimeout(() => btn.classList.remove('active-press'), 100);
+                    };
+                    btn.addEventListener('touchstart', triggerDir, { passive: false });
+                    btn.addEventListener('mousedown', triggerDir);
+                });
+
+                // Ultra-Responsive Continuous Drag-Turning on Canvas (12px threshold)
+                let touchAnchorX = 0;
+                let touchAnchorY = 0;
+                this.canvas.addEventListener('touchstart', (e) => {
+                    this.sound.init();
+                    if (e.touches.length > 0) {
+                        touchAnchorX = e.touches[0].clientX;
+                        touchAnchorY = e.touches[0].clientY;
+                    }
+                }, { passive: true });
+
+                this.canvas.addEventListener('touchmove', (e) => {
+                    if (!touchAnchorX || !touchAnchorY || e.touches.length === 0) return;
+                    const dx = e.touches[0].clientX - touchAnchorX;
+                    const dy = e.touches[0].clientY - touchAnchorY;
+                    const minSwipe = 12; // Crisp 12px finger movement threshold
+
+                    if (Math.abs(dx) > minSwipe || Math.abs(dy) > minSwipe) {
+                        if (Math.abs(dx) > Math.abs(dy)) {
+                            this.queueDirection(dx > 0 ? 'RIGHT' : 'LEFT');
+                        } else {
+                            this.queueDirection(dy > 0 ? 'DOWN' : 'UP');
+                        }
+                        // Reset anchor immediately for continuous multi-corner dragging
+                        touchAnchorX = e.touches[0].clientX;
+                        touchAnchorY = e.touches[0].clientY;
+                    }
+                }, { passive: true });
+            }
+
+            updateWallModeUI() {
+                const modalBtn = document.getElementById('modal-wall-toggle');
+                const hudIcon = document.getElementById('icon-wall-mode');
+                const footerText = document.getElementById('footer-mode-indicator');
+
+                if (this.portalWalls) {
+                    modalBtn.textContent = '[ PORTAL WRAP ]';
+                    modalBtn.className = 'px-2.5 py-0.5 bg-cyan-950/60 border border-cyan-400/50 text-cyan-300 text-[11px] tracking-widest uppercase hover:bg-cyan-900/60 transition';
+                    hudIcon.className = 'fa-solid fa-infinity text-xs';
+                    hudIcon.style.color = 'var(--accent)';
+                    footerText.textContent = 'BOUNDARY: PORTAL WRAP';
+                    footerText.style.color = 'var(--accent)';
+                    this.wrapper.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                } else {
+                    modalBtn.textContent = '[ SOLID LETHAL ]';
+                    modalBtn.className = 'px-2.5 py-0.5 bg-rose-950/60 border border-rose-500/60 text-rose-400 text-[11px] tracking-widest uppercase hover:bg-rose-900/60 transition';
+                    hudIcon.className = 'fa-solid fa-border-all text-xs text-rose-400';
+                    hudIcon.style.color = '';
+                    footerText.textContent = 'BOUNDARY: SOLID LETHAL';
+                    footerText.style.color = '#fb7185';
+                    this.wrapper.style.borderColor = 'rgba(244, 63, 94, 0.65)';
+                }
+            }
+
+            setTheme(key) {
+                if (!THEMES[key]) return;
+                this.themeKey = key;
+                this.theme = THEMES[key];
+                document.documentElement.style.setProperty('--bg-primary', this.theme.bg);
+                document.documentElement.style.setProperty('--accent', this.theme.accent);
+                document.documentElement.style.setProperty('--accent-glow', this.theme.accentGlow);
+            }
+
+            resizeCanvas() {
+                const mainArea = this.wrapper.parentElement;
+                const availW = mainArea.clientWidth - 16;
+                const availH = mainArea.clientHeight - 16;
+                const rawSize = Math.max(260, Math.min(availW, availH, 630));
+
+                // Snap canvas size to exact multiple of gridCount for razor-sharp grid rendering
+                this.cellSize = Math.floor(rawSize / this.gridCount);
+                const finalPixelSize = this.cellSize * this.gridCount;
+
+                this.canvas.width = finalPixelSize;
+                this.canvas.height = finalPixelSize;
+                this.wrapper.style.width = `${finalPixelSize}px`;
+                this.wrapper.style.height = `${finalPixelSize}px`;
+            }
+
+            resetEntities() {
+                const startX = Math.floor(this.gridCount / 2);
+                const startY = Math.floor(this.gridCount / 2);
+
+                this.snake = [
+                    { x: startX, y: startY },
+                    { x: startX - 1, y: startY },
+                    { x: startX - 2, y: startY },
+                    { x: startX - 3, y: startY }
+                ];
+                // Deep copy for smooth interpolation
+                this.prevSnake = this.snake.map(seg => ({ ...seg }));
+
+                this.direction = { x: 1, y: 0, name: 'RIGHT', idx: 3 };
+                this.inputQueue = [];
+                this.turnedThisStep = false;
+                this.coyoteTimer = 0;
+                this.pivotEffects = [];
+                this.headSquash = 0;
+
+                this.score = 0;
+                this.combo = 1;
+                this.maxCombo = 1;
+                this.comboTimer = 0;
+                this.activePower = null;
+                this.moveAccumulator = 0;
+
+                this.food = null;
+                this.bonusItem = null;
+                this.bonusSpawnCounter = 0;
+
+                this.spawnFood();
+                this.updateHUD();
+            }
+
+            startGame() {
+                this.resetEntities();
+                this.state = 'PLAYING';
+                this.elOverlay.classList.add('opacity-0', 'pointer-events-none');
+                this.lastFrameTime = performance.now();
+            }
+
+            togglePause() {
+                const pauseIcon = document.getElementById('icon-pause');
+                if (this.state === 'PLAYING') {
+                    this.state = 'PAUSED';
+                    pauseIcon.className = 'fa-solid fa-play text-xs text-emerald-400';
+                    this.elModalBadge.textContent = 'SYS.HALT // STANDBY';
+                    this.elModalTitle.textContent = 'SYSTEM PAUSED';
+                    this.elModalSub.textContent = 'SIGNAL VECTOR SUSPENDED. AWAITING OPERATOR INPUT.';
+                    this.elGameoverStats.classList.add('hidden');
+                    this.elBtnStart.textContent = '[ RESUME SIGNAL ]';
+                    this.elOverlay.classList.remove('opacity-0', 'pointer-events-none');
+                } else if (this.state === 'PAUSED') {
+                    this.state = 'PLAYING';
+                    pauseIcon.className = 'fa-solid fa-pause text-xs';
+                    this.elOverlay.classList.add('opacity-0', 'pointer-events-none');
+                    this.lastFrameTime = performance.now();
+                }
+            }
+
+            triggerGameOver() {
+                this.state = 'GAMEOVER';
+                this.sound.playGameOver();
+                this.shakeIntensity = 18;
+
+                // Explode snake segments into vibrant particles
+                this.snake.forEach((seg, idx) => {
+                    const px = (seg.x + 0.5) * this.cellSize;
+                    const py = (seg.y + 0.5) * this.cellSize;
+                    const color = this.getSegmentColor(idx, this.snake.length);
+                    this.spawnParticles(px, py, color, 8, 1.4);
+                });
+
+                // Update Modal
+                this.elModalBadge.textContent = 'ERR_COLLISION // SIGNAL LOST';
+                this.elModalTitle.textContent = 'VIPER TERMINATED';
+                this.elModalSub.textContent = this.score >= this.bestScore && this.score > 0
+                    ? 'NEW HIGH SCORE RECORD LOGGED TO MEMORY.'
+                    : 'CARRIER WAVE INTERRUPTED. RE-INITIALIZE TO TRY AGAIN.';
+
+                document.getElementById('stat-score').textContent = this.score;
+                document.getElementById('stat-combo').textContent = `${this.maxCombo.toFixed(1)}x`;
+                document.getElementById('stat-length').textContent = this.snake.length;
+                this.elGameoverStats.classList.remove('hidden');
+
+                this.elBtnStart.textContent = '[ RE-INITIALIZE ]';
+                setTimeout(() => {
+                    if (this.state === 'GAMEOVER') {
+                        this.elOverlay.classList.remove('opacity-0', 'pointer-events-none');
+                    }
+                }, 450);
+            }
+
+            /**
+             * ============================================================================
+             * 4. GOOGLE-CRISP INPUT QUEUE, EARLY TURN SNAP & COYOTE TIME
+             * ============================================================================
+             */
+            handleKeyDown(e) {
+                const key = e.key.toLowerCase();
+
+                if (key === ' ' || key === 'p') {
+                    if (e.repeat) return;
+                    e.preventDefault();
+                    if (this.state === 'PLAYING' || this.state === 'PAUSED') {
+                        this.togglePause();
+                    } else if (this.state === 'MENU' || this.state === 'GAMEOVER') {
+                        this.sound.init();
+                        this.startGame();
+                    }
+                    return;
+                }
+
+                if (key === 'm' && !e.repeat) {
+                    const muted = this.sound.toggleMute();
+                    const icon = document.getElementById('icon-mute');
+                    icon.className = muted ? 'fa-solid fa-volume-xmark text-xs text-rose-400' : 'fa-solid fa-volume-high text-xs';
+                    return;
+                }
+
+                const map = {
+                    'arrowup': 'UP', 'w': 'UP', 'k': 'UP',
+                    'arrowdown': 'DOWN', 's': 'DOWN', 'j': 'DOWN',
+                    'arrowleft': 'LEFT', 'a': 'LEFT', 'h': 'LEFT',
+                    'arrowright': 'RIGHT', 'd': 'RIGHT', 'l': 'RIGHT'
+                };
+
+                if (map[key]) {
+                    e.preventDefault();
+                    // Ignore OS auto-repeat events so holding a key never floods the buffer
+                    if (e.repeat) return;
+                    this.sound.init();
+                    // Allow pressing any movement key from the initial start screen to launch immediately
+                    if (this.state === 'MENU') {
+                        this.startGame();
+                    }
+                    this.queueDirection(map[key]);
+                }
+            }
+
+            spawnPivotGlow(gridX, gridY) {
+                this.pivotEffects.push({
+                    x: (gridX + 0.5) * this.cellSize,
+                    y: (gridY + 0.5) * this.cellSize,
+                    radius: this.cellSize * 0.28,
+                    maxRadius: this.cellSize * 0.85,
+                    alpha: 0.75,
+                    color: this.theme.accent
+                });
+                this.headSquash = 1.0;
+            }
+
+            // Checks if stepping from `head` in `dir` would cause a lethal crash
+            wouldCrash(head, dir) {
+                let nx = head.x + dir.x;
+                let ny = head.y + dir.y;
+
+                if (nx < 0 || nx >= this.gridCount || ny < 0 || ny >= this.gridCount) {
+                    if (!this.portalWalls) return true;
+                    nx = (nx + this.gridCount) % this.gridCount;
+                    ny = (ny + this.gridCount) % this.gridCount;
+                }
+
+                // Check body segments (excluding tail tip which vacates on move)
+                for (let i = 0; i < this.snake.length - 1; i++) {
+                    if (this.snake[i].x === nx && this.snake[i].y === ny) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            queueDirection(dirName) {
+                if (this.state !== 'PLAYING') return;
+
+                const dirVectors = {
+                    'UP':    { x: 0,  y: -1, name: 'UP',    idx: 0 },
+                    'DOWN':  { x: 0,  y: 1,  name: 'DOWN',  idx: 1 },
+                    'LEFT':  { x: -1, y: 0,  name: 'LEFT',  idx: 2 },
+                    'RIGHT': { x: 1,  y: 0,  name: 'RIGHT', idx: 3 }
+                };
+
+                const next = dirVectors[dirName];
+                if (!next) return;
+
+                // Reference direction is the last buffered turn, or current active direction
+                const lastDir = this.inputQueue.length > 0
+                    ? this.inputQueue[this.inputQueue.length - 1]
+                    : this.direction;
+
+                // Reject redundant duplicate direction or illegal 180-degree self-reversal
+                if (next.x === lastDir.x && next.y === lastDir.y) return;
+                if (next.x === -lastDir.x && next.y === -lastDir.y) return;
+
+                const cfg = this.speedPresets[this.speedPreset] || this.speedPresets.google;
+                const stepInterval = this.getCurrentStepInterval();
+                const stepFraction = this.moveAccumulator / stepInterval;
+
+                // CASE 1: COYOTE TIME RESCUE!
+                // If the snake is currently in its brief grace window against a wall/body,
+                // pressing a valid turn immediately pivots & steps out of danger!
+                if (this.coyoteTimer > 0 && this.inputQueue.length === 0) {
+                    this.direction = next;
+                    this.coyoteTimer = 0;
+                    this.turnedThisStep = true;
+                    this.sound.playTurn(next.idx);
+                    this.spawnPivotGlow(this.snake[0].x, this.snake[0].y);
+                    this.moveAccumulator = 0;
+                    this.stepSimulation();
+                    return;
+                }
+
+                // CASE 2: SUB-TICK EARLY TURN SNAP (Google Snake Secret Sauce)
+                // If no turn is queued yet, we haven't pivoted on this cell, and the snake is still
+                // within the early fraction (<36%) of leaving the current grid cell,
+                // redirect the current step onto the new perpendicular axis immediately!
+                if (
+                    this.inputQueue.length === 0 &&
+                    !this.turnedThisStep &&
+                    stepFraction <= cfg.snapWindow &&
+                    this.prevSnake.length > 0
+                ) {
+                    const pivotCell = this.prevSnake[0];
+                    if (!this.wouldCrash(pivotCell, next)) {
+                        let newX = pivotCell.x + next.x;
+                        let newY = pivotCell.y + next.y;
+                        let wrapped = false;
+
+                        if (newX < 0 || newX >= this.gridCount || newY < 0 || newY >= this.gridCount) {
+                            if (this.portalWalls) {
+                                newX = (newX + this.gridCount) % this.gridCount;
+                                newY = (newY + this.gridCount) % this.gridCount;
+                                wrapped = true;
+                            }
+                        }
+
+                        // Redirect the current head target onto the new axis seamlessly
+                        this.direction = next;
+                        this.turnedThisStep = true;
+                        this.snake[0] = { x: newX, y: newY, wrapped };
+                        this.sound.playTurn(next.idx);
+                        this.spawnPivotGlow(pivotCell.x, pivotCell.y);
+
+                        // Check if the redirected head immediately lands on food or bonus
+                        if (this.food && newX === this.food.x && newY === this.food.y) {
+                            // Restore tail segment since we grew on this redirected step
+                            const tailTip = this.prevSnake[this.prevSnake.length - 1];
+                            if (tailTip) this.snake.push({ ...tailTip });
+                            this.handleEatFood(newX, newY);
+                        }
+                        if (this.bonusItem && newX === this.bonusItem.x && newY === this.bonusItem.y) {
+                            this.handleEatBonus(this.bonusItem);
+                            this.bonusItem = null;
+                        }
+                        return;
+                    }
+                }
+
+                // CASE 3: SMART 3-STEP INPUT BUFFER + TURN ACCELERATION
+                // Buffer up to 3 rapid inputs so lightning-fast U-turns (e.g. Right -> Down -> Left) never drop
+                if (this.inputQueue.length < 3) {
+                    this.inputQueue.push(next);
+                    this.sound.playTurn(next.idx);
+
+                    // Turn Fast-Forward: if this is the first queued turn and we are past the snap window,
+                    // shave off a portion of the remaining wait time so the corner snaps briskly
+                    if (this.inputQueue.length === 1 && stepFraction > cfg.snapWindow) {
+                        const remaining = stepInterval - this.moveAccumulator;
+                        this.moveAccumulator += remaining * (1 - cfg.fastForward);
+                    }
+                }
+            }
+
+            /**
+             * ============================================================================
+             * 5. ITEM SPAWNING & COLLISION LOGIC
+             * ============================================================================
+             */
+            isCellOccupied(x, y) {
+                for (const seg of this.snake) {
+                    if (seg.x === x && seg.y === y) return true;
+                }
+                if (this.food && this.food.x === x && this.food.y === y) return true;
+                if (this.bonusItem && this.bonusItem.x === x && this.bonusItem.y === y) return true;
+                return false;
+            }
+
+            getRandomFreeCell() {
+                const freeCells = [];
+                for (let x = 0; x < this.gridCount; x++) {
+                    for (let y = 0; y < this.gridCount; y++) {
+                        if (!this.isCellOccupied(x, y)) {
+                            freeCells.push({ x, y });
+                        }
+                    }
+                }
+                if (freeCells.length === 0) return { x: 0, y: 0 };
+                return freeCells[Math.floor(Math.random() * freeCells.length)];
+            }
+
+            spawnFood() {
+                const pos = this.getRandomFreeCell();
+                this.food = {
+                    x: pos.x,
+                    y: pos.y,
+                    spawnScale: 0.1
+                };
+            }
+
+            spawnBonusItem() {
+                const pos = this.getRandomFreeCell();
+                const types = [
+                    { id: 'GOLD', name: 'GOLDEN CORE', color: '#fbbf24', icon: '★', duration: 7500 },
+                    { id: 'SLOW', name: 'CHRONO SHIFT', color: '#38bdf8', icon: '◷', duration: 8000 },
+                    { id: 'MAGNET', name: 'GRAVITY WELL', color: '#c084fc', icon: '⊕', duration: 8000 }
+                ];
+                const chosen = types[Math.floor(Math.random() * types.length)];
+                this.bonusItem = {
+                    x: pos.x,
+                    y: pos.y,
+                    ...chosen,
+                    timer: chosen.duration,
+                    maxTimer: chosen.duration
+                };
+            }
+
+            getCurrentStepInterval() {
+                // Crisp Google Snake base cadence with gentle progressive acceleration
+                const speedBoost = Math.min(28, (this.snake.length - 4) * 0.65);
+                let interval = this.baseMoveInterval - speedBoost;
+                if (this.activePower && this.activePower.type === 'SLOW') {
+                    interval *= 1.42; // Chrono Slow-Mo
+                }
+                return Math.max(46, interval);
+            }
+
+            stepSimulation() {
+                const head = this.snake[0];
+
+                // Peek at the upcoming direction (queued or current)
+                const upcomingDir = this.inputQueue.length > 0 ? this.inputQueue[0] : this.direction;
+
+                // Check if stepping in `upcomingDir` would hit a lethal wall or body
+                if (this.wouldCrash(head, upcomingDir)) {
+                    const cfg = this.speedPresets[this.speedPreset] || this.speedPresets.google;
+                    // Grant brief Coyote Time grace window if not already used
+                    if (this.coyoteTimer <= 0) {
+                        this.coyoteTimer = cfg.coyoteMs;
+                        // Keep accumulator clamped at threshold while waiting for rescue input
+                        this.moveAccumulator = this.getCurrentStepInterval();
+                        return;
+                    }
+                }
+
+                // Clear coyote timer on valid step
+                this.coyoteTimer = 0;
+
+                // Save current positions for smooth 60/120fps interpolation
+                this.prevSnake = this.snake.map(seg => ({ ...seg }));
+
+                // Consume next buffered turn
+                if (this.inputQueue.length > 0) {
+                    this.direction = this.inputQueue.shift();
+                    this.turnedThisStep = true;
+                    this.spawnPivotGlow(head.x, head.y);
+                } else {
+                    this.turnedThisStep = false;
+                }
+
+                let nextX = head.x + this.direction.x;
+                let nextY = head.y + this.direction.y;
+                let wrapped = false;
+
+                // Boundary handling
+                if (nextX < 0 || nextX >= this.gridCount || nextY < 0 || nextY >= this.gridCount) {
+                    if (this.portalWalls) {
+                        nextX = (nextX + this.gridCount) % this.gridCount;
+                        nextY = (nextY + this.gridCount) % this.gridCount;
+                        wrapped = true;
+                    } else {
+                        this.triggerGameOver();
+                        return;
+                    }
+                }
+
+                // Check Self-Collision (ignore tail tip as it moves forward this tick)
+                for (let i = 0; i < this.snake.length - 1; i++) {
+                    if (this.snake[i].x === nextX && this.snake[i].y === nextY) {
+                        this.triggerGameOver();
+                        return;
+                    }
+                }
+
+                // Advance Snake Head
+                const newHead = { x: nextX, y: nextY, wrapped };
+                this.snake.unshift(newHead);
+
+                // Magnet Power-Up pulls standard food toward head if nearby
+                if (this.activePower && this.activePower.type === 'MAGNET' && this.food) {
+                    const dx = nextX - this.food.x;
+                    const dy = nextY - this.food.y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist > 0 && dist <= 5.5) {
+                        const stepX = dx !== 0 ? Math.sign(dx) : 0;
+                        const stepY = dy !== 0 ? Math.sign(dy) : 0;
+                        const targetX = this.food.x + stepX;
+                        const targetY = this.food.y + stepY;
+                        if (!this.isCellOccupied(targetX, targetY) || (targetX === nextX && targetY === nextY)) {
+                            this.food.x = targetX;
+                            this.food.y = targetY;
+                        }
+                    }
+                }
+
+                // Check Food Consumption
+                if (this.food && nextX === this.food.x && nextY === this.food.y) {
+                    this.handleEatFood(nextX, nextY);
+                } else {
+                    // Remove tail segment if not growing
+                    this.snake.pop();
+                }
+
+                // Check Special Bonus Item Consumption
+                if (this.bonusItem && nextX === this.bonusItem.x && nextY === this.bonusItem.y) {
+                    this.handleEatBonus(this.bonusItem);
+                    this.bonusItem = null;
+                }
+            }
+
+            handleEatFood(gx, gy) {
+                const px = (gx + 0.5) * this.cellSize;
+                const py = (gy + 0.5) * this.cellSize;
+
+                // Combo System Update
+                if (this.comboTimer > 0) {
+                    this.combo = Math.min(8.0, +(this.combo + 0.5).toFixed(1));
+                } else {
+                    this.combo = 1.0;
+                }
+                this.maxCombo = Math.max(this.maxCombo, this.combo);
+                this.comboTimer = this.comboMaxDuration;
+
+                const points = Math.round(10 * this.combo);
+                this.score += points;
+                this.saveBestScore();
+
+                // Audio + Juicy Visual Feedback
+                this.sound.playEat(this.combo * 1.4);
+                this.shakeIntensity = Math.min(10, 3.5 + this.combo * 0.8);
+                this.boardPulse = 1.0;
+
+                this.spawnParticles(px, py, this.theme.foodCore, 22 + Math.floor(this.combo * 3), 1.15);
+                this.spawnShockwave(px, py, this.theme.foodCore);
+                this.spawnFloatingText(
+                    px,
+                    py,
+                    this.combo > 1 ? `+${points} (${this.combo}x!)` : `+${points}`,
+                    this.combo >= 3 ? '#fbbf24' : '#ffffff'
+                );
+
+                // Pop HUD Score
+                this.elScore.classList.remove('animate-pop');
+                void this.elScore.offsetWidth;
+                this.elScore.classList.add('animate-pop');
+
+                this.spawnFood();
+
+                // Spawn Special Bonus Core every 5 apples eaten
+                this.bonusSpawnCounter++;
+                if (this.bonusSpawnCounter % 5 === 0 && !this.bonusItem) {
+                    this.spawnBonusItem();
+                }
+
+                this.updateHUD();
+            }
+
+            handleEatBonus(item) {
+                const px = (item.x + 0.5) * this.cellSize;
+                const py = (item.y + 0.5) * this.cellSize;
+
+                this.sound.playBonus(item.id);
+                this.shakeIntensity = 9;
+                this.boardPulse = 1.3;
+
+                this.spawnParticles(px, py, item.color, 34, 1.4);
+                this.spawnShockwave(px, py, item.color, 1.6);
+
+                if (item.id === 'GOLD') {
+                    this.combo = Math.min(8.0, +(this.combo + 1.5).toFixed(1));
+                    this.maxCombo = Math.max(this.maxCombo, this.combo);
+                    this.comboTimer = this.comboMaxDuration;
+                    const pts = Math.round(50 * this.combo);
+                    this.score += pts;
+                    this.saveBestScore();
+                    this.spawnFloatingText(px, py, `GOLDEN +${pts}!`, '#fbbf24');
+                } else if (item.id === 'SLOW') {
+                    this.activePower = { type: 'SLOW', name: 'CHRONO SHIFT', icon: '[SLOW]', color: '#38bdf8', timer: 7000, max: 7000 };
+                    this.spawnFloatingText(px, py, 'CHRONO SHIFT!', '#38bdf8');
+                } else if (item.id === 'MAGNET') {
+                    this.activePower = { type: 'MAGNET', name: 'GRAVITY WELL', icon: '[MAG]', color: '#c084fc', timer: 8000, max: 8000 };
+                    this.spawnFloatingText(px, py, 'GRAVITY MAGNET!', '#c084fc');
+                }
+
+                this.updateHUD();
+            }
+
+            saveBestScore() {
+                if (this.score > this.bestScore) {
+                    this.bestScore = this.score;
+                    localStorage.setItem('prismViperBest', String(this.bestScore));
+                }
+            }
+
+            updateHUD() {
+                this.elScore.textContent = this.score;
+                this.elBest.textContent = this.bestScore;
+                this.elCombo.textContent = `${this.combo.toFixed(1)}x`;
+            }
+
+            /**
+             * ============================================================================
+             * 6. PARTICLE, SHOCKWAVE & FLOATING TEXT SYSTEMS
+             * ============================================================================
+             */
+            spawnParticles(x, y, color, count = 20, speedMult = 1) {
+                for (let i = 0; i < count; i++) {
+                    const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+                    const speed = (1.5 + Math.random() * 4.5) * speedMult;
+                    this.particles.push({
+                        x,
+                        y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        size: 2.5 + Math.random() * 4,
+                        color,
+                        alpha: 1,
+                        decay: 0.018 + Math.random() * 0.022
+                    });
+                }
+            }
+
+            spawnShockwave(x, y, color, scale = 1) {
+                this.shockwaves.push({
+                    x,
+                    y,
+                    radius: this.cellSize * 0.3,
+                    maxRadius: this.cellSize * 3.8 * scale,
+                    color,
+                    alpha: 0.9
+                });
+            }
+
+            spawnFloatingText(x, y, text, color) {
+                this.floatingTexts.push({
+                    x,
+                    y,
+                    text,
+                    color,
+                    alpha: 1,
+                    vy: -1.3,
+                    scale: 1
+                });
+            }
+
+            /**
+             * ============================================================================
+             * 7. MAIN UPDATE & RENDERING LOOP (60FPS INTERPOLATED)
+             * ============================================================================
+             */
+            loop(now) {
+                const dt = Math.max(0, Math.min(50, now - this.lastFrameTime));
+                this.lastFrameTime = now;
+
+                if (this.state === 'PLAYING') {
+                    this.updateTimers(dt);
+
+                    // Handle Collision Coyote Time Grace Window
+                    if (this.coyoteTimer > 0) {
+                        this.coyoteTimer -= dt;
+                        if (this.coyoteTimer <= 0) {
+                            // Grace window expired without a perpendicular rescue turn
+                            this.coyoteTimer = 0;
+                            this.triggerGameOver();
+                        }
+                    } else {
+                        const stepInterval = this.getCurrentStepInterval();
+                        this.moveAccumulator += dt;
+
+                        while (this.moveAccumulator >= stepInterval && this.state === 'PLAYING' && this.coyoteTimer <= 0) {
+                            this.moveAccumulator -= stepInterval;
+                            this.stepSimulation();
+                        }
+                    }
+                }
+
+                this.updateVisualEffects(dt);
+                this.render(now);
+
+                requestAnimationFrame((t) => this.loop(t));
+            }
+
+            updateTimers(dt) {
+                // Combo Decay Timer
+                if (this.comboTimer > 0) {
+                    this.comboTimer -= dt;
+                    if (this.comboTimer <= 0) {
+                        this.comboTimer = 0;
+                        this.combo = 1.0;
+                        this.updateHUD();
+                    }
+                    const pct = Math.max(0, (this.comboTimer / this.comboMaxDuration) * 100);
+                    this.elComboBar.style.width = `${pct}%`;
+                } else {
+                    this.elComboBar.style.width = '0%';
+                }
+
+                // Bonus Item Despawn Timer
+                if (this.bonusItem) {
+                    this.bonusItem.timer -= dt;
+                    if (this.bonusItem.timer <= 0) {
+                        this.bonusItem = null;
+                    }
+                }
+
+                // Active Power-Up Timer
+                const banner = document.getElementById('powerup-banner');
+                if (this.activePower) {
+                    this.activePower.timer -= dt;
+                    if (this.activePower.timer <= 0) {
+                        this.activePower = null;
+                        banner.classList.add('hidden');
+                    } else {
+                        banner.classList.remove('hidden');
+                        document.getElementById('powerup-icon').textContent = this.activePower.icon;
+                        document.getElementById('powerup-name').textContent = this.activePower.name;
+                        const bar = document.getElementById('powerup-bar');
+                        bar.style.width = `${(this.activePower.timer / this.activePower.max) * 100}%`;
+                        bar.style.backgroundColor = this.activePower.color;
+                    }
+                } else {
+                    banner.classList.add('hidden');
+                }
+            }
+
+            updateVisualEffects(dt) {
+                // Decay Screen Shake, Pulse & Head Turn Squash
+                this.shakeIntensity *= 0.86;
+                if (this.shakeIntensity < 0.1) this.shakeIntensity = 0;
+
+                this.boardPulse *= 0.90;
+                if (this.boardPulse < 0.01) this.boardPulse = 0;
+
+                this.headSquash *= 0.82;
+                if (this.headSquash < 0.01) this.headSquash = 0;
+
+                if (this.food && this.food.spawnScale < 1) {
+                    this.food.spawnScale = Math.min(1, this.food.spawnScale + dt * 0.008);
+                }
+
+                // Update Corner Pivot Glow Rings
+                for (let i = this.pivotEffects.length - 1; i >= 0; i--) {
+                    const pf = this.pivotEffects[i];
+                    pf.radius += (pf.maxRadius - pf.radius) * 0.25;
+                    pf.alpha -= 0.065;
+                    if (pf.alpha <= 0) this.pivotEffects.splice(i, 1);
+                }
+
+                // Update Burst Particles
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vx *= 0.95;
+                    p.vy *= 0.95;
+                    p.alpha -= p.decay;
+                    if (p.alpha <= 0) this.particles.splice(i, 1);
+                }
+
+                // Update Trail Particles
+                for (let i = this.trailParticles.length - 1; i >= 0; i--) {
+                    const tp = this.trailParticles[i];
+                    tp.alpha -= 0.035;
+                    tp.size *= 0.96;
+                    if (tp.alpha <= 0) this.trailParticles.splice(i, 1);
+                }
+
+                // Update Expanding Shockwaves
+                for (let i = this.shockwaves.length - 1; i >= 0; i--) {
+                    const sw = this.shockwaves[i];
+                    sw.radius += (sw.maxRadius - sw.radius) * 0.16;
+                    sw.alpha -= 0.032;
+                    if (sw.alpha <= 0) this.shockwaves.splice(i, 1);
+                }
+
+                // Update Floating Score Popups
+                for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+                    const ft = this.floatingTexts[i];
+                    ft.y += ft.vy;
+                    ft.alpha -= 0.022;
+                    if (ft.alpha <= 0) this.floatingTexts.splice(i, 1);
+                }
+            }
+
+            getSegmentColor(index, total) {
+                const t = total > 1 ? index / (total - 1) : 0;
+                const r = Math.round(this.theme.snakeStart[0] + (this.theme.snakeEnd[0] - this.theme.snakeStart[0]) * t);
+                const g = Math.round(this.theme.snakeStart[1] + (this.theme.snakeEnd[1] - this.theme.snakeStart[1]) * t);
+                const b = Math.round(this.theme.snakeStart[2] + (this.theme.snakeEnd[2] - this.theme.snakeStart[2]) * t);
+                return `rgb(${r}, ${g}, ${b})`;
+            }
+
+            getInterpolatedSnake(alpha) {
+                const coords = [];
+                for (let i = 0; i < this.snake.length; i++) {
+                    const curr = this.snake[i];
+                    const prev = this.prevSnake[i] || curr;
+
+                    // If segment just wrapped across portal edges, don't interpolate across the whole board
+                    const dx = curr.x - prev.x;
+                    const dy = curr.y - prev.y;
+                    if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+                        coords.push({
+                            x: (curr.x + 0.5) * this.cellSize,
+                            y: (curr.y + 0.5) * this.cellSize,
+                            wrapped: true
+                        });
+                    } else {
+                        const ix = prev.x + dx * alpha;
+                        const iy = prev.y + dy * alpha;
+                        coords.push({
+                            x: (ix + 0.5) * this.cellSize,
+                            y: (iy + 0.5) * this.cellSize,
+                            wrapped: false
+                        });
+                    }
+                }
+                return coords;
+            }
+
+            render(now) {
+                const ctx = this.ctx;
+                const W = this.canvas.width;
+                const H = this.canvas.height;
+
+                ctx.save();
+
+                // 1. Background Fill
+                ctx.fillStyle = this.theme.bg;
+                ctx.fillRect(0, 0, W, H);
+
+                // 2. Apply Screen Shake
+                if (this.shakeIntensity > 0) {
+                    const sx = (Math.random() - 0.5) * this.shakeIntensity * 2;
+                    const sy = (Math.random() - 0.5) * this.shakeIntensity * 2;
+                    ctx.translate(sx, sy);
+                }
+
+                // 3. Draw Reactive Grid
+                this.drawReactiveGrid();
+
+                // 4. Draw Shockwaves & Corner Pivot Rings
+                for (const sw of this.shockwaves) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(sw.x, sw.y, Math.max(0.1, sw.radius), 0, Math.PI * 2);
+                    ctx.strokeStyle = sw.color;
+                    ctx.globalAlpha = Math.max(0, sw.alpha);
+                    ctx.lineWidth = 3;
+                    ctx.shadowColor = sw.color;
+                    ctx.shadowBlur = 12;
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                for (const pf of this.pivotEffects) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(pf.x, pf.y, Math.max(0.1, pf.radius), 0, Math.PI * 2);
+                    ctx.strokeStyle = pf.color;
+                    ctx.globalAlpha = Math.max(0, pf.alpha);
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                // 5. Draw Food Core
+                if (this.food) {
+                    this.drawFood(now);
+                }
+
+                // 6. Draw Special Bonus Core
+                if (this.bonusItem) {
+                    this.drawBonusItem(now);
+                }
+
+                // 7. Draw Trail Particles
+                for (const tp of this.trailParticles) {
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, tp.alpha);
+                    ctx.fillStyle = tp.color;
+                    ctx.beginPath();
+                    ctx.arc(tp.x, tp.y, Math.max(0.1, tp.size), 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // 8. Draw Smooth Interpolated Snake
+                if (this.state !== 'GAMEOVER') {
+                    const stepInterval = this.getCurrentStepInterval();
+                    const alpha = this.state === 'PLAYING' ? Math.max(0, Math.min(1, this.moveAccumulator / stepInterval)) : 1;
+                    this.drawSmoothSnake(alpha, now);
+                }
+
+                // 9. Draw Burst Particles
+                for (const p of this.particles) {
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, p.alpha);
+                    ctx.fillStyle = p.color;
+                    ctx.shadowColor = p.color;
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, Math.max(0.1, p.size), 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // 10. Draw Floating Score Popups
+                for (const ft of this.floatingTexts) {
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, ft.alpha);
+                    ctx.font = `900 ${Math.max(13, Math.floor(this.cellSize * 0.65))}px 'Orbitron', sans-serif`;
+                    ctx.fillStyle = ft.color;
+                    ctx.textAlign = 'center';
+                    ctx.shadowColor = ft.color;
+                    ctx.shadowBlur = 8;
+                    ctx.fillText(ft.text, ft.x, ft.y);
+                    ctx.restore();
+                }
+
+                ctx.restore();
+            }
+
+            drawReactiveGrid() {
+                const ctx = this.ctx;
+                const W = this.canvas.width;
+                const H = this.canvas.height;
+
+                ctx.strokeStyle = this.theme.grid;
+                ctx.lineWidth = 1;
+
+                // Subtle grid highlight around the snake head and food
+                const head = this.snake[0];
+                const hx = (head.x + 0.5) * this.cellSize;
+                const hy = (head.y + 0.5) * this.cellSize;
+
+                // Draw grid intersections as subtle glowing dots + lines
+                ctx.beginPath();
+                for (let i = 1; i < this.gridCount; i++) {
+                    const pos = i * this.cellSize;
+                    ctx.moveTo(pos, 0);
+                    ctx.lineTo(pos, H);
+                    ctx.moveTo(0, pos);
+                    ctx.lineTo(W, pos);
+                }
+                ctx.stroke();
+
+                // Highlight cells near snake head with a soft radial aura
+                const grad = ctx.createRadialGradient(hx, hy, 4, hx, hy, this.cellSize * 4.5);
+                grad.addColorStop(0, this.theme.accentGlow);
+                grad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = grad;
+                ctx.globalAlpha = 0.16 + this.boardPulse * 0.15;
+                ctx.fillRect(0, 0, W, H);
+                ctx.globalAlpha = 1;
+            }
+
+            drawFood(now) {
+                const ctx = this.ctx;
+                const fx = (this.food.x + 0.5) * this.cellSize;
+                const fy = (this.food.y + 0.5) * this.cellSize;
+                const pulse = 1 + Math.sin(now * 0.008) * 0.14;
+                const spawnScale = Math.max(0.05, this.food.spawnScale || 0.1);
+                const radius = Math.max(0.5, this.cellSize * 0.38 * pulse * spawnScale);
+
+                ctx.save();
+                ctx.translate(fx, fy);
+
+                // Outer rotating diamond halo
+                ctx.save();
+                ctx.rotate(now * 0.0025);
+                ctx.strokeStyle = this.theme.foodCore;
+                ctx.globalAlpha = 0.55;
+                ctx.lineWidth = 1.5;
+                const box = radius * 1.45;
+                ctx.strokeRect(-box / 2, -box / 2, box, box);
+                ctx.restore();
+
+                // Glowing Energy Core
+                ctx.shadowColor = this.theme.foodGlow;
+                ctx.shadowBlur = 18;
+                ctx.fillStyle = this.theme.foodCore;
+                ctx.beginPath();
+                ctx.arc(0, 0, radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Inner bright specular core
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(-radius * 0.2, -radius * 0.2, Math.max(0.2, radius * 0.35), 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            drawBonusItem(now) {
+                const ctx = this.ctx;
+                const bx = (this.bonusItem.x + 0.5) * this.cellSize;
+                const by = (this.bonusItem.y + 0.5) * this.cellSize;
+                const pulse = 1 + Math.sin(now * 0.012) * 0.16;
+                const radius = Math.max(0.5, this.cellSize * 0.42 * pulse);
+
+                ctx.save();
+                ctx.translate(bx, by);
+
+                // Countdown progress arc around bonus item
+                const progress = Math.max(0, this.bonusItem.timer / this.bonusItem.maxTimer);
+                ctx.beginPath();
+                ctx.arc(0, 0, radius * 1.38, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
+                ctx.strokeStyle = this.bonusItem.color;
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+
+                // Glowing body
+                ctx.shadowColor = this.bonusItem.color;
+                ctx.shadowBlur = 20;
+                ctx.fillStyle = this.bonusItem.color;
+                ctx.beginPath();
+                ctx.arc(0, 0, radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Center crisp icon
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#090d16';
+                ctx.font = `bold ${Math.floor(this.cellSize * 0.46)}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.bonusItem.icon, 0, 1);
+
+                ctx.restore();
+            }
+
+            drawSmoothSnake(alpha, now) {
+                const ctx = this.ctx;
+                const pts = this.getInterpolatedSnake(alpha);
+                if (pts.length === 0) return;
+
+                // Spawn subtle tail trail particles while moving
+                const tail = pts[pts.length - 1];
+                if (this.state === 'PLAYING' && Math.random() < 0.45) {
+                    this.trailParticles.push({
+                        x: tail.x + (Math.random() - 0.5) * (this.cellSize * 0.35),
+                        y: tail.y + (Math.random() - 0.5) * (this.cellSize * 0.35),
+                        size: this.cellSize * 0.16,
+                        color: this.getSegmentColor(pts.length - 1, pts.length),
+                        alpha: 0.55
+                    });
+                }
+
+                // Draw connected organic segments from tail to head so head sits on top
+                for (let i = pts.length - 1; i >= 0; i--) {
+                    const pt = pts[i];
+                    // Taper tail smoothly
+                    const taper = i > pts.length - 4 ? 0.65 + ((pts.length - 1 - i) / 4) * 0.35 : 1;
+                    const segRadius = (this.cellSize * 0.43) * taper;
+                    const color = i === 0 ? this.theme.snakeHead : this.getSegmentColor(i, pts.length);
+
+                    ctx.save();
+                    ctx.fillStyle = color;
+                    ctx.shadowColor = i === 0 ? this.theme.accent : color;
+                    ctx.shadowBlur = i === 0 ? 18 : 10;
+
+                    // Draw connector bridge to previous segment if not wrapped across portal
+                    if (i > 0) {
+                        const nextPt = pts[i - 1];
+                        const dist = Math.hypot(nextPt.x - pt.x, nextPt.y - pt.y);
+                        if (dist < this.cellSize * 2) {
+                            ctx.strokeStyle = color;
+                            ctx.lineWidth = segRadius * 2;
+                            ctx.lineCap = 'round';
+                            ctx.beginPath();
+                            ctx.moveTo(pt.x, pt.y);
+                            ctx.lineTo(nextPt.x, nextPt.y);
+                            ctx.stroke();
+                        }
+                    }
+
+                    // Draw joint circle (with subtle squash/stretch on head when cornering)
+                    const safeRadius = Math.max(0.5, segRadius);
+                    ctx.beginPath();
+                    if (i === 0 && this.headSquash > 0.05) {
+                        let angle = 0;
+                        if (this.direction.x === 1) angle = 0;
+                        else if (this.direction.x === -1) angle = Math.PI;
+                        else if (this.direction.y === 1) angle = Math.PI / 2;
+                        else if (this.direction.y === -1) angle = -Math.PI / 2;
+
+                        const stretch = Math.max(0.2, 1 + this.headSquash * 0.22);
+                        const squash = Math.max(0.2, 1 - this.headSquash * 0.14);
+                        ctx.ellipse(pt.x, pt.y, safeRadius * stretch, safeRadius * squash, angle, 0, Math.PI * 2);
+                    } else {
+                        ctx.arc(pt.x, pt.y, safeRadius, 0, Math.PI * 2);
+                    }
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // Draw Expressive Viper Eyes on the Head
+                const headPt = pts[0];
+                ctx.save();
+                ctx.translate(headPt.x, headPt.y);
+
+                // Rotate eyes toward movement direction
+                let angle = 0;
+                if (this.direction.x === 1) angle = 0;
+                else if (this.direction.x === -1) angle = Math.PI;
+                else if (this.direction.y === 1) angle = Math.PI / 2;
+                else if (this.direction.y === -1) angle = -Math.PI / 2;
+
+                ctx.rotate(angle);
+
+                const eyeOffsetX = this.cellSize * 0.14;
+                const eyeOffsetY = this.cellSize * 0.18;
+                const eyeRadius = Math.max(2, this.cellSize * 0.09);
+
+                ctx.fillStyle = '#090d16';
+                ctx.beginPath();
+                ctx.arc(eyeOffsetX, -eyeOffsetY, eyeRadius, 0, Math.PI * 2);
+                ctx.arc(eyeOffsetX, eyeOffsetY, eyeRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Magnet aura ring around head when active
+                if (this.activePower && this.activePower.type === 'MAGNET') {
+                    ctx.strokeStyle = '#c084fc';
+                    ctx.lineWidth = 1.5;
+                    ctx.globalAlpha = 0.45 + Math.sin(now * 0.01) * 0.25;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.cellSize * 1.15, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        // Start game instance on window load
+        window.onload = function () {
+            new PrismViperGame();
+        };
+    </script>
+</body>
+</html>
