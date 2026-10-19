@@ -435,7 +435,7 @@
         class SupabaseLeaderboard {
             constructor() {
                 // Replace these two constants with your Supabase Project URL and Anon Key
-                this.SUPABASE_URL = 'https://diwxsvdgleroayjierav.supabase.co/rest/v1/';
+                this.SUPABASE_URL = 'https://diwxsvdgleroayjierav.supabase.co';
                 this.SUPABASE_ANON_KEY = 'sb_publishable_nO13tceH4tlJnHbsCpsWtA_S2cuRrUX';
                 this.GAME_SALT = 'PRISM_VIPER_v2.4_CRT_SALT_9941';
 
@@ -601,10 +601,12 @@
                         });
 
                         if (error) {
+                            console.error("Supabase Database/Anti-Cheat Rejection:", error);
                             return { ok: false, message: error.message.toUpperCase().slice(0, 26) };
                         }
                         return { ok: true, message: 'GLOBAL RECORD LOGGED' };
                     } catch (err) {
+                        console.error("Supabase Network/Offline Error:", err);
                         return { ok: false, message: 'SAVED LOCALLY (OFFLINE)' };
                     }
                 }
