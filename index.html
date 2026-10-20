@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PRISM VIPER // Hyper-Juicy Arcade Snake</title>
+    <title>Arcade Snake</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Orbitron, Rajdhani & Share Tech Mono for authentic CRT arcade UI -->
@@ -193,6 +193,55 @@
                 linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
             background-size: 16px 16px;
         }
+
+        /* Custom CRT Dev Console Styling */
+        .dev-console-panel {
+            background: rgba(5, 8, 16, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.95), 0 0 18px rgba(244, 63, 94, 0.18), inset 0 0 22px rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(6px);
+        }
+
+        .dev-btn {
+            background: rgba(12, 18, 32, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #e2e8f0;
+            transition: all 0.1s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .dev-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(0, 255, 204, 0.09);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .dev-btn:active {
+            transform: translateY(1px);
+        }
+
+        .dev-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: #1e293b;
+            border-radius: 999px;
+            outline: none;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .dev-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col items-center justify-between p-2 sm:p-4 select-none overflow-hidden">
@@ -265,7 +314,7 @@
         <!-- Active Power-Up Status Bar -->
         <div id="powerup-banner" class="hidden crt-panel rounded px-3 py-1 flex items-center justify-between text-xs tracking-widest uppercase">
             <div class="flex items-center gap-2">
-                <span id="powerup-icon" class="font-mono-tech font-bold" style="color: var(--accent)">[SYS]</span>
+                <i id="powerup-icon" class="fa-solid fa-bolt" style="color: var(--accent)"></i>
                 <span id="powerup-name" class="text-white">OVERDRIVE</span>
             </div>
             <div class="w-36 sm:w-48 h-1.5 bg-slate-900 border border-slate-700 overflow-hidden">
@@ -358,28 +407,40 @@
                     </div>
 
                     <!-- Retro Arcade Schematic Legend -->
-                    <div class="w-full grid grid-cols-2 gap-x-3 gap-y-1.5 text-left text-[10px] bg-black/50 p-2.5 border border-slate-800/90 mb-3.5 uppercase tracking-wider">
+                    <div class="w-full grid grid-cols-2 gap-x-3 gap-y-2 text-left text-[10px] bg-black/50 p-2.5 border border-slate-800/90 mb-3.5 uppercase tracking-wider">
                         <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 bg-rose-500 shadow-[0_0_8px_#f43f5e] inline-block shrink-0"></span>
+                            <span class="w-3 h-3 bg-rose-500 shadow-[0_0_8px_#f43f5e] inline-block shrink-0 border border-rose-400"></span>
                             <span class="text-slate-300">CORE <span class="text-slate-500">+10/X</span></span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 bg-amber-400 shadow-[0_0_8px_#fbbf24] inline-block shrink-0"></span>
+                            <div class="w-3 h-3 flex items-center justify-center bg-amber-400 shadow-[0_0_8px_#fbbf24] shrink-0 text-black rounded-sm"><i class="fa-solid fa-star text-[7px]"></i></div>
                             <span class="text-slate-300">GOLD <span class="text-slate-500">+50/2X</span></span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 bg-sky-400 shadow-[0_0_8px_#38bdf8] inline-block shrink-0"></span>
+                            <div class="w-3 h-3 flex items-center justify-center bg-sky-400 shadow-[0_0_8px_#38bdf8] shrink-0 text-black rounded-sm"><i class="fa-solid fa-clock text-[7px]"></i></div>
                             <span class="text-slate-300">CHRONO <span class="text-slate-500">SLOW</span></span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 bg-purple-400 shadow-[0_0_8px_#c084fc] inline-block shrink-0"></span>
+                            <div class="w-3 h-3 flex items-center justify-center bg-purple-400 shadow-[0_0_8px_#c084fc] shrink-0 text-black rounded-sm"><i class="fa-solid fa-magnet text-[7px]"></i></div>
                             <span class="text-slate-300">MAGNET <span class="text-slate-500">PULL</span></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 flex items-center justify-center bg-lime-400 shadow-[0_0_8px_#84cc16] shrink-0 text-black rounded-sm"><i class="fa-solid fa-scissors text-[7px]"></i></div>
+                            <span class="text-slate-300">SHEARS <span class="text-slate-500">HALF</span></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 flex items-center justify-center bg-orange-500 shadow-[0_0_8px_#f97316] shrink-0 text-black rounded-sm"><i class="fa-solid fa-ghost text-[7px]"></i></div>
+                            <span class="text-slate-300">GHOST <span class="text-orange-400/90">PHASE</span></span>
                         </div>
                     </div>
 
                     <!-- Coin-Op Launch Trigger -->
-                    <button id="btn-start" class="btn-arcade w-full py-3 rounded-none font-display font-bold text-sm sm:text-base tracking-[0.2em] uppercase cursor-pointer">
+                    <button id="btn-start" class="btn-arcade w-full py-3 rounded-none font-display font-bold text-sm sm:text-base tracking-[0.2em] uppercase cursor-pointer mb-2.5">
                         [ INITIALIZE VIPER ]
+                    </button>
+                    
+                    <button id="btn-credits" class="w-full text-[10px] tracking-[0.18em] font-mono-tech text-slate-400 hover:text-cyan-400 transition cursor-pointer uppercase py-1">
+                        > VIEW SYSTEM CREDITS
                     </button>
 
                     <div class="mt-2.5 text-[10px] tracking-[0.18em] text-slate-500 uppercase">
@@ -391,6 +452,109 @@
             <!-- Authentic CRT Scanline + Vignette Overlay (Covers BOTH Game & Start Menu!) -->
             <div class="scanlines absolute inset-0 z-30"></div>
         </div>
+
+        <!-- FLOATING CRT DEV CONSOLE (Activated via Hold Shift + Up Up Down Down Left Right Left Right B A) -->
+        <aside id="dev-console" class="hidden dev-console-panel fixed right-3 top-3 sm:right-5 sm:top-5 w-72 sm:w-80 p-4 z-50 text-xs font-mono-tech select-none">
+            <!-- Header -->
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-3">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-rose-500 shadow-[0_0_8px_#f43f5e] animate-pulse"></span>
+                    <h3 class="font-display font-extrabold text-sm tracking-[0.16em] text-white">DEV CONSOLE</h3>
+                </div>
+                <button id="dev-close" title="Close Dev Console" class="dev-btn w-6 h-6 flex items-center justify-center text-xs font-bold cursor-pointer">
+                    X
+                </button>
+            </div>
+
+            <!-- Live Telemetry Readouts -->
+            <div class="grid grid-cols-2 gap-y-1 gap-x-2 text-[11px] tracking-widest bg-black/60 p-2.5 border border-slate-800/90 mb-3">
+                <div>STATE <span id="dev-stat-state" class="text-white font-bold">PLAYING</span></div>
+                <div>LEN <span id="dev-stat-len" class="text-white font-bold">4</span></div>
+                <div>STEP <span id="dev-stat-step" class="text-white font-bold">88MS</span></div>
+                <div>WALLS <span id="dev-stat-walls" class="text-cyan-400 font-bold">PORTAL</span></div>
+                <div class="col-span-2">POWER <span id="dev-stat-power" class="text-amber-400 font-bold">-</span></div>
+                <div class="col-span-2">FIELD <span id="dev-stat-field" class="text-emerald-400 font-bold">-</span></div>
+                <div class="col-span-2 pt-0.5 border-t border-slate-900">
+                    DEV RUN <span id="dev-stat-flagged" class="text-emerald-400 font-bold">NO</span>
+                </div>
+            </div>
+
+            <!-- Spawn on Field -->
+            <div class="mb-3">
+                <div class="text-[10px] tracking-[0.18em] text-slate-400 uppercase mb-1.5">SPAWN ON FIELD</div>
+                <div class="grid grid-cols-3 gap-1.5">
+                    <button data-dev-spawn="FOOD" class="dev-btn py-1.5 text-[10px] cursor-pointer">FOOD</button>
+                    <button data-dev-spawn="GOLD" class="dev-btn py-1.5 text-[10px] cursor-pointer">GOLD</button>
+                    <button data-dev-spawn="SLOW" class="dev-btn py-1.5 text-[10px] cursor-pointer">CHRONO</button>
+                    <button data-dev-spawn="MAGNET" class="dev-btn py-1.5 text-[10px] cursor-pointer">MAGNET</button>
+                    <button data-dev-spawn="SHEARS" class="dev-btn py-1.5 text-[10px] cursor-pointer">SHEAR</button>
+                    <button data-dev-spawn="GHOST" class="dev-btn py-1.5 text-[10px] text-orange-400 cursor-pointer">GHOST</button>
+                    <button data-dev-spawn="CLEAR" class="dev-btn col-span-3 py-1 text-[10px] text-rose-400 cursor-pointer">CLEAR BONUS FIELD</button>
+                </div>
+            </div>
+
+            <!-- Apply Power Now -->
+            <div class="mb-3">
+                <div class="text-[10px] tracking-[0.18em] text-slate-400 uppercase mb-1.5">APPLY POWER NOW</div>
+                <div class="grid grid-cols-5 gap-1">
+                    <button data-dev-power="GOLD" class="dev-btn py-1.5 text-[9px] cursor-pointer">GOLD</button>
+                    <button data-dev-power="SLOW" class="dev-btn py-1.5 text-[9px] cursor-pointer">CHRONO</button>
+                    <button data-dev-power="MAGNET" class="dev-btn py-1.5 text-[9px] cursor-pointer">MAGNET</button>
+                    <button data-dev-power="SHEARS" class="dev-btn py-1.5 text-[9px] cursor-pointer">SHEAR</button>
+                    <button data-dev-power="GHOST" class="dev-btn py-1.5 text-[9px] text-orange-400 cursor-pointer">GHOST</button>
+                </div>
+            </div>
+
+            <!-- Snake Length Adjusters -->
+            <div class="mb-3">
+                <div class="text-[10px] tracking-[0.18em] text-slate-400 uppercase mb-1.5">SNAKE LENGTH</div>
+                <div class="grid grid-cols-5 gap-1.5">
+                    <button data-dev-len="1" class="dev-btn py-1.5 text-[10px] cursor-pointer">+1</button>
+                    <button data-dev-len="5" class="dev-btn py-1.5 text-[10px] cursor-pointer">+5</button>
+                    <button data-dev-len="10" class="dev-btn py-1.5 text-[10px] cursor-pointer">+10</button>
+                    <button data-dev-len="-1" class="dev-btn py-1.5 text-[10px] cursor-pointer">-1</button>
+                    <button data-dev-len="-5" class="dev-btn py-1.5 text-[10px] cursor-pointer">-5</button>
+                </div>
+            </div>
+
+            <!-- Base Step Interval Slider + Presets -->
+            <div class="mb-3">
+                <div class="flex items-center justify-between text-[10px] tracking-[0.18em] text-slate-400 uppercase mb-1.5">
+                    <span>BASE STEP INTERVAL</span>
+                    <span id="dev-slider-val" class="text-white font-bold">88MS</span>
+                </div>
+                <input id="dev-step-slider" type="range" min="35" max="220" value="88" class="dev-slider w-full mb-2" />
+                <div class="grid grid-cols-3 gap-1.5">
+                    <button data-dev-preset="classic" class="dev-btn py-1.5 text-[10px] cursor-pointer">CLASSIC</button>
+                    <button data-dev-preset="google" class="dev-btn py-1.5 text-[10px] cursor-pointer">CRISP</button>
+                    <button data-dev-preset="hyper" class="dev-btn py-1.5 text-[10px] cursor-pointer">HYPER</button>
+                </div>
+            </div>
+
+            <!-- Simulation Checkboxes & Single Step -->
+            <div class="space-y-2 mb-3 pt-1 border-t border-slate-800/80">
+                <label class="flex items-center gap-2.5 cursor-pointer text-[11px] tracking-wider text-slate-200">
+                    <input id="dev-chk-nospeedup" type="checkbox" class="w-3.5 h-3.5 accent-cyan-400 cursor-pointer" />
+                    <span>NO LENGTH SPEED-UP</span>
+                </label>
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center gap-2.5 cursor-pointer text-[11px] tracking-wider text-slate-200">
+                        <input id="dev-chk-freeze" type="checkbox" class="w-3.5 h-3.5 accent-cyan-400 cursor-pointer" />
+                        <span>FREEZE SIM</span>
+                    </label>
+                    <button id="dev-btn-step" class="dev-btn px-3 py-1 text-[10px] font-bold cursor-pointer">STEP</button>
+                </div>
+            </div>
+
+            <!-- Highlighted Red Anti-Cheat Warning Banner -->
+            <div id="dev-warning-box" class="p-2.5 bg-rose-950/80 border border-rose-500/80 text-rose-200 text-[10px] leading-relaxed tracking-wider shadow-[0_0_15px_rgba(244,63,94,0.25)]">
+                <div class="flex items-center gap-1.5 text-rose-400 font-bold uppercase mb-0.5">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>TELEMETRY LOCKOUT WARNING</span>
+                </div>
+                Using any control marks the run as a <span class="text-rose-300 font-bold underline">DEV RUN</span>: no high score saved, no leaderboard submit.
+            </div>
+        </aside>
     </main>
 
     <!-- BOTTOM CONTROLS: ON-SCREEN D-PAD & HINTS -->
@@ -425,6 +589,50 @@
             </div>
         </div>
     </footer>
+
+    <!-- ========================================================================================= -->
+    <!-- EDIT CREDITS HERE: You can easily edit these names and titles to customize your credits!  -->
+    <!-- ========================================================================================= -->
+    <div id="credits-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-opacity duration-200">
+        <div class="crt-frame retro-grid-bg max-w-sm w-full p-6 flex flex-col items-center text-center overflow-hidden">
+            
+            <h2 class="font-display font-black text-2xl tracking-widest mb-6 text-white" style="text-shadow: 0 0 15px var(--accent-glow);">
+                SYSTEM CREDITS
+            </h2>
+            
+            <div class="w-full space-y-4 mb-6 font-mono-tech text-xs tracking-widest uppercase">
+                <!-- Role 1 -->
+                <div>
+                    <div class="text-slate-500 mb-1">LEAD DEVELOPER</div>
+                    <div class="text-cyan-400 font-bold">YOUR NAME HERE</div>
+                </div>
+                <!-- Role 2 -->
+                <div>
+                    <div class="text-slate-500 mb-1">ORIGINAL CONCEPT</div>
+                    <div class="text-emerald-400 font-bold">ARCADE LEGENDS</div>
+                </div>
+                <!-- Role 3 -->
+                <div>
+                    <div class="text-slate-500 mb-1">AUDIO / VISUAL FX</div>
+                    <div class="text-amber-400 font-bold">PROCEDURAL SYNTH API</div>
+                </div>
+                <!-- Role 4 -->
+                <div>
+                    <div class="text-slate-500 mb-1">SPECIAL THANKS</div>
+                    <div class="text-rose-400 font-bold">THE PLAYTESTERS</div>
+                </div>
+            </div>
+
+            <button id="btn-close-credits" class="btn-arcade w-full py-2.5 rounded-none font-display font-bold text-xs tracking-[0.2em] uppercase cursor-pointer relative z-20">
+                [ RETURN TO TERMINAL ]
+            </button>
+            
+            <div class="scanlines absolute inset-0 z-10 pointer-events-none"></div>
+        </div>
+    </div>
+    <!-- ========================================================================================= -->
+    <!-- END OF CREDITS HTML                                                                       -->
+    <!-- ========================================================================================= -->
 
     <script>
         /**
@@ -842,7 +1050,15 @@
                 this.comboMaxDuration = 4200; // ms before combo decays
 
                 // Active Power-Up State
-                this.activePower = null; // { type: 'SLOW' | 'MAGNET', timer: ms, max: ms }
+                this.activePower = null; // { type: 'SLOW' | 'MAGNET' | 'GHOST', timer: ms, max: ms }
+
+                // Developer Console & Anti-Cheat Run State
+                this.devConsoleOpen = false;
+                this.devRunFlagged = false;
+                this.devNoLengthSpeedup = false;
+                this.devFreezeSim = false;
+                this.konamiSequence = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown', 'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a'];
+                this.konamiProgress = 0;
 
                 // Visual Effects Lists
                 this.particles = [];
@@ -896,6 +1112,20 @@
                 this.elLeaderboardList = document.getElementById('leaderboard-list');
                 this.elLbBadge = document.getElementById('lb-status-badge');
 
+                // Credits Modal Handlers
+                this.elBtnCredits = document.getElementById('btn-credits');
+                this.elCreditsModal = document.getElementById('credits-modal');
+                this.elBtnCloseCredits = document.getElementById('btn-close-credits');
+
+                if (this.elBtnCredits && this.elCreditsModal) {
+                    this.elBtnCredits.addEventListener('click', () => {
+                        this.elCreditsModal.classList.remove('hidden');
+                    });
+                    this.elBtnCloseCredits.addEventListener('click', () => {
+                        this.elCreditsModal.classList.add('hidden');
+                    });
+                }
+
                 // Pre-fill last used operator name
                 const savedTag = localStorage.getItem('prismViperLastTag');
                 if (savedTag) {
@@ -904,6 +1134,13 @@
 
                 // Tag Submission Handler with Anti-Cheat Telemetry & Rate Limit Feedback
                 this.elBtnSubmitTag.addEventListener('click', async () => {
+                    if (this.devRunFlagged) {
+                        if (this.elSubmitFeedback) {
+                            this.elSubmitFeedback.textContent = 'DEV RUN: LEADERBOARD DISABLED';
+                            this.elSubmitFeedback.className = 'text-rose-400 font-bold';
+                        }
+                        return;
+                    }
                     const tag = this.elTagInput.value || 'OPERATOR';
                     this.elBtnSubmitTag.disabled = true;
                     this.elBtnSubmitTag.textContent = '[ VERIFYING... ]';
@@ -991,9 +1228,13 @@
                 const toggleWalls = () => {
                     this.portalWalls = !this.portalWalls;
                     this.updateWallModeUI();
+                    this.updateDevConsoleUI();
                 };
                 document.getElementById('btn-wall-mode').addEventListener('click', toggleWalls);
                 document.getElementById('modal-wall-toggle').addEventListener('click', toggleWalls);
+
+                // Initialize Dev Console Controls
+                this.initDevConsoleDOM();
 
                 // Keyboard Input (Zero-latency keydown, ignoring OS key-repeat flood)
                 window.addEventListener('keydown', (e) => this.handleKeyDown(e));
@@ -1040,6 +1281,155 @@
                         touchAnchorY = e.touches[0].clientY;
                     }
                 }, { passive: true });
+            }
+
+            initDevConsoleDOM() {
+                this.elDevConsole = document.getElementById('dev-console');
+                this.elDevState = document.getElementById('dev-stat-state');
+                this.elDevLen = document.getElementById('dev-stat-len');
+                this.elDevStep = document.getElementById('dev-stat-step');
+                this.elDevWalls = document.getElementById('dev-stat-walls');
+                this.elDevPower = document.getElementById('dev-stat-power');
+                this.elDevField = document.getElementById('dev-stat-field');
+                this.elDevFlagged = document.getElementById('dev-stat-flagged');
+                this.elDevSlider = document.getElementById('dev-step-slider');
+                this.elDevSliderVal = document.getElementById('dev-slider-val');
+                this.elDevChkNoSpeed = document.getElementById('dev-chk-nospeedup');
+                this.elDevChkFreeze = document.getElementById('dev-chk-freeze');
+
+                document.getElementById('dev-close').addEventListener('click', () => {
+                    this.devConsoleOpen = false;
+                    this.elDevConsole.classList.add('hidden');
+                });
+
+                // Spawn on Field Buttons
+                document.querySelectorAll('[data-dev-spawn]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.markDevRun();
+                        const type = btn.getAttribute('data-dev-spawn');
+                        if (type === 'FOOD') {
+                            this.spawnFood();
+                        } else if (type === 'CLEAR') {
+                            this.bonusItem = null;
+                        } else {
+                            this.spawnBonusItem(type);
+                        }
+                        this.updateDevConsoleUI();
+                    });
+                });
+
+                // Apply Power Immediately Buttons
+                document.querySelectorAll('[data-dev-power]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.markDevRun();
+                        const type = btn.getAttribute('data-dev-power');
+                        const def = this.getBonusDefinition(type);
+                        if (def && this.snake.length > 0) {
+                            this.handleEatBonus({
+                                x: this.snake[0].x,
+                                y: this.snake[0].y,
+                                ...def
+                            });
+                        }
+                        this.updateDevConsoleUI();
+                    });
+                });
+
+                // Adjust Snake Length Buttons
+                document.querySelectorAll('[data-dev-len]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.markDevRun();
+                        const delta = parseInt(btn.getAttribute('data-dev-len'), 10);
+                        this.adjustSnakeLength(delta);
+                        this.updateDevConsoleUI();
+                    });
+                });
+
+                // Base Step Interval Slider
+                this.elDevSlider.addEventListener('input', (e) => {
+                    this.markDevRun();
+                    this.baseMoveInterval = parseInt(e.target.value, 10);
+                    this.elDevSliderVal.textContent = `${this.baseMoveInterval}MS`;
+                    this.updateDevConsoleUI();
+                });
+
+                // Speed Preset Buttons inside Dev Console
+                document.querySelectorAll('[data-dev-preset]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.markDevRun();
+                        const preset = btn.getAttribute('data-dev-preset');
+                        this.speedPreset = preset;
+                        const cfg = this.speedPresets[preset] || this.speedPresets.google;
+                        this.baseMoveInterval = cfg.baseInterval;
+                        this.elDevSlider.value = this.baseMoveInterval;
+                        this.elDevSliderVal.textContent = `${this.baseMoveInterval}MS`;
+                        document.getElementById('speed-select').value = preset;
+                        this.updateDevConsoleUI();
+                    });
+                });
+
+                // No Length Speed-Up Checkbox
+                this.elDevChkNoSpeed.addEventListener('change', (e) => {
+                    this.markDevRun();
+                    this.devNoLengthSpeedup = e.target.checked;
+                    this.updateDevConsoleUI();
+                });
+
+                // Freeze Sim Checkbox
+                this.elDevChkFreeze.addEventListener('change', (e) => {
+                    this.markDevRun();
+                    this.devFreezeSim = e.target.checked;
+                    this.updateDevConsoleUI();
+                });
+
+                // Single Tick Step Button
+                document.getElementById('dev-btn-step').addEventListener('click', () => {
+                    this.markDevRun();
+                    if (this.state === 'PLAYING') {
+                        this.moveAccumulator = 0;
+                        this.stepSimulation();
+                        this.updateDevConsoleUI();
+                    }
+                });
+            }
+
+            markDevRun() {
+                this.devRunFlagged = true;
+                this.updateDevConsoleUI();
+            }
+
+            adjustSnakeLength(delta) {
+                if (!this.snake || this.snake.length === 0) return;
+                if (delta > 0) {
+                    for (let i = 0; i < delta; i++) {
+                        const tail = this.snake[this.snake.length - 1];
+                        this.snake.push({ ...tail });
+                        this.prevSnake.push({ ...tail });
+                    }
+                } else if (delta < 0) {
+                    const targetLen = Math.max(2, this.snake.length + delta);
+                    this.snake.length = targetLen;
+                    this.prevSnake.length = targetLen;
+                }
+            }
+
+            updateDevConsoleUI() {
+                if (!this.devConsoleOpen || !this.elDevConsole) return;
+                this.elDevState.textContent = this.state;
+                this.elDevLen.textContent = this.snake ? this.snake.length : 0;
+                this.elDevStep.textContent = `${Math.round(this.getCurrentStepInterval())}MS`;
+                this.elDevWalls.textContent = this.portalWalls ? 'PORTAL' : 'SOLID';
+                this.elDevWalls.className = this.portalWalls ? 'text-cyan-400 font-bold' : 'text-rose-400 font-bold';
+                this.elDevPower.textContent = this.activePower ? this.activePower.type : '-';
+                this.elDevField.textContent = this.bonusItem ? this.bonusItem.id : '-';
+
+                if (this.devRunFlagged) {
+                    this.elDevFlagged.textContent = 'YES (VOID)';
+                    this.elDevFlagged.className = 'text-rose-400 font-bold blink-slow';
+                } else {
+                    this.elDevFlagged.textContent = 'NO';
+                    this.elDevFlagged.className = 'text-emerald-400 font-bold';
+                }
             }
 
             updateWallModeUI() {
@@ -1117,6 +1507,7 @@
                 this.comboTimer = 0;
                 this.activePower = null;
                 this.moveAccumulator = 0;
+                this.devRunFlagged = (this.devNoLengthSpeedup || this.devFreezeSim);
 
                 // Anti-cheat session telemetry counters
                 this.applesEaten = 0;
@@ -1137,7 +1528,9 @@
                 this.state = 'PLAYING';
                 this.elOverlay.classList.add('opacity-0', 'pointer-events-none');
                 this.elTagRow.classList.add('hidden');
+                if (this.elCreditsModal) this.elCreditsModal.classList.add('hidden');
                 this.lastFrameTime = performance.now();
+                this.updateDevConsoleUI();
             }
 
             togglePause() {
@@ -1158,6 +1551,7 @@
                     this.elOverlay.classList.add('opacity-0', 'pointer-events-none');
                     this.lastFrameTime = performance.now();
                 }
+                this.updateDevConsoleUI();
             }
 
             async refreshLeaderboardUI() {
@@ -1201,19 +1595,23 @@
                 });
 
                 // Update Modal & Score Stats
-                this.elModalBadge.textContent = 'ERR_COLLISION // SIGNAL LOST';
+                this.elModalBadge.textContent = this.devRunFlagged
+                    ? 'DEV_OVERRIDE // UNRANKED RUN'
+                    : 'ERR_COLLISION // SIGNAL LOST';
                 this.elModalTitle.textContent = 'VIPER TERMINATED';
-                this.elModalSub.textContent = this.score >= this.bestScore && this.score > 0
-                    ? 'NEW HIGH SCORE RECORD LOGGED TO MEMORY.'
-                    : 'CARRIER WAVE INTERRUPTED. RE-INITIALIZE TO TRY AGAIN.';
+                this.elModalSub.textContent = this.devRunFlagged
+                    ? 'DEV CONSOLE MODIFICATIONS DETECTED: HIGH SCORE & LEADERBOARD DISABLED.'
+                    : (this.score >= this.bestScore && this.score > 0
+                        ? 'NEW HIGH SCORE RECORD LOGGED TO MEMORY.'
+                        : 'CARRIER WAVE INTERRUPTED. RE-INITIALIZE TO TRY AGAIN.');
 
                 document.getElementById('stat-score').textContent = this.score;
                 document.getElementById('stat-combo').textContent = `${this.maxCombo.toFixed(1)}x`;
                 document.getElementById('stat-length').textContent = this.snake.length;
                 this.elGameoverStats.classList.remove('hidden');
 
-                // Show arcade initials input if player scored points
-                if (this.score > 0) {
+                // Show arcade initials input only if player scored points AND run was not a Dev Run
+                if (this.score > 0 && !this.devRunFlagged) {
                     this.elTagRow.classList.remove('hidden');
                     if (this.elSubmitFeedback) {
                         this.elSubmitFeedback.textContent = 'VERIFIED TELEMETRY';
@@ -1225,6 +1623,7 @@
                 }
 
                 this.refreshLeaderboardUI();
+                this.updateDevConsoleUI();
 
                 this.elBtnStart.textContent = '[ RE-INITIALIZE ]';
                 setTimeout(() => {
@@ -1242,12 +1641,42 @@
             handleKeyDown(e) {
                 const key = e.key.toLowerCase();
 
+                // Check Shift + Konami Sequence: Hold Shift + Up, Up, Down, Down, Left, Right, Left, Right, B, A
+                if (e.shiftKey && key !== 'shift') {
+                    const expectedKey = this.konamiSequence[this.konamiProgress];
+                    if (key === expectedKey) {
+                        this.konamiProgress++;
+                        if (this.konamiProgress === this.konamiSequence.length) {
+                            this.konamiProgress = 0;
+                            this.devConsoleOpen = !this.devConsoleOpen;
+                            if (this.devConsoleOpen) {
+                                this.elDevConsole.classList.remove('hidden');
+                                this.sound.init();
+                                this.sound.playBonus('GOLD');
+                                this.updateDevConsoleUI();
+                            } else {
+                                this.elDevConsole.classList.add('hidden');
+                            }
+                        }
+                        e.preventDefault();
+                        return;
+                    } else {
+                        this.konamiProgress = (key === this.konamiSequence[0]) ? 1 : 0;
+                    }
+                } else if (!e.shiftKey && key !== 'shift') {
+                    this.konamiProgress = 0;
+                }
+
                 if (key === ' ' || key === 'p') {
                     if (e.repeat) return;
                     e.preventDefault();
                     if (this.state === 'PLAYING' || this.state === 'PAUSED') {
                         this.togglePause();
                     } else if (this.state === 'MENU' || this.state === 'GAMEOVER') {
+                        // Prevent spacebar from starting the game if the credits modal is open
+                        if (this.elCreditsModal && !this.elCreditsModal.classList.contains('hidden')) {
+                            return;
+                        }
                         this.sound.init();
                         this.startGame();
                     }
@@ -1275,6 +1704,9 @@
                     this.sound.init();
                     // Allow pressing any movement key from the initial start screen to launch immediately
                     if (this.state === 'MENU') {
+                        if (this.elCreditsModal && !this.elCreditsModal.classList.contains('hidden')) {
+                            return; // Don't start game if credits are open
+                        }
                         this.startGame();
                     }
                     this.queueDirection(map[key]);
@@ -1297,12 +1729,16 @@
             wouldCrash(head, dir) {
                 let nx = head.x + dir.x;
                 let ny = head.y + dir.y;
+                const isGhost = this.activePower && this.activePower.type === 'GHOST';
 
                 if (nx < 0 || nx >= this.gridCount || ny < 0 || ny >= this.gridCount) {
-                    if (!this.portalWalls) return true;
+                    if (!this.portalWalls && !isGhost) return true;
                     nx = (nx + this.gridCount) % this.gridCount;
                     ny = (ny + this.gridCount) % this.gridCount;
                 }
+
+                // Ghost Phase ignores self-collision completely
+                if (isGhost) return false;
 
                 // Check body segments (excluding tail tip which vacates on move)
                 for (let i = 0; i < this.snake.length - 1; i++) {
@@ -1368,9 +1804,10 @@
                         let newX = pivotCell.x + next.x;
                         let newY = pivotCell.y + next.y;
                         let wrapped = false;
+                        const isGhost = this.activePower && this.activePower.type === 'GHOST';
 
                         if (newX < 0 || newX >= this.gridCount || newY < 0 || newY >= this.gridCount) {
-                            if (this.portalWalls) {
+                            if (this.portalWalls || isGhost) {
                                 newX = (newX + this.gridCount) % this.gridCount;
                                 newY = (newY + this.gridCount) % this.gridCount;
                                 wrapped = true;
@@ -1446,18 +1883,47 @@
                 this.food = {
                     x: pos.x,
                     y: pos.y,
-                    spawnScale: 0.1
+                    spawnScale: 0.05
                 };
             }
 
-            spawnBonusItem() {
+            getBonusDefinition(typeId) {
+                const defs = {
+                    GOLD:   { id: 'GOLD',   name: 'GOLDEN CORE',      color: '#fbbf24', iconClass: 'fa-star',     duration: 7500, weight: 28 },
+                    SLOW:   { id: 'SLOW',   name: 'CHRONO SHIFT',     color: '#38bdf8', iconClass: 'fa-clock',    duration: 8000, weight: 26 },
+                    MAGNET: { id: 'MAGNET', name: 'GRAVITY WELL',     color: '#c084fc', iconClass: 'fa-magnet',   duration: 8000, weight: 26 },
+                    SHEARS: { id: 'SHEARS', name: 'DIMENSION SHEARS', color: '#84cc16', iconClass: 'fa-scissors', duration: 8000, weight: 22 },
+                    GHOST:  { id: 'GHOST',  name: 'GHOST PHASE',      color: '#f97316', iconClass: 'fa-ghost',    duration: 8500, weight: 10 } // Rarer spawn weight!
+                };
+                return defs[typeId] || defs.GOLD;
+            }
+
+            spawnBonusItem(forcedTypeId = null) {
                 const pos = this.getRandomFreeCell();
-                const types = [
-                    { id: 'GOLD', name: 'GOLDEN CORE', color: '#fbbf24', icon: '★', duration: 7500 },
-                    { id: 'SLOW', name: 'CHRONO SHIFT', color: '#38bdf8', icon: '◷', duration: 8000 },
-                    { id: 'MAGNET', name: 'GRAVITY WELL', color: '#c084fc', icon: '⊕', duration: 8000 }
-                ];
-                const chosen = types[Math.floor(Math.random() * types.length)];
+                let chosen = null;
+
+                if (forcedTypeId) {
+                    chosen = this.getBonusDefinition(forcedTypeId);
+                } else {
+                    const pool = [
+                        this.getBonusDefinition('GOLD'),
+                        this.getBonusDefinition('SLOW'),
+                        this.getBonusDefinition('MAGNET'),
+                        this.getBonusDefinition('SHEARS'),
+                        this.getBonusDefinition('GHOST')
+                    ];
+                    const totalWeight = pool.reduce((sum, item) => sum + item.weight, 0);
+                    let roll = Math.random() * totalWeight;
+                    for (const item of pool) {
+                        if (roll < item.weight) {
+                            chosen = item;
+                            break;
+                        }
+                        roll -= item.weight;
+                    }
+                    if (!chosen) chosen = pool[0];
+                }
+
                 this.bonusItem = {
                     x: pos.x,
                     y: pos.y,
@@ -1468,13 +1934,15 @@
             }
 
             getCurrentStepInterval() {
-                // Crisp Google Snake base cadence with gentle progressive acceleration
-                const speedBoost = Math.min(28, (this.snake.length - 4) * 0.65);
+                // Crisp Google Snake base cadence with gentle progressive acceleration (unless disabled in Dev Console)
+                const speedBoost = this.devNoLengthSpeedup
+                    ? 0
+                    : Math.min(28, Math.max(0, (this.snake.length - 4) * 0.65));
                 let interval = this.baseMoveInterval - speedBoost;
                 if (this.activePower && this.activePower.type === 'SLOW') {
                     interval *= 1.42; // Chrono Slow-Mo
                 }
-                return Math.max(46, interval);
+                return Math.max(35, interval);
             }
 
             stepSimulation() {
@@ -1513,10 +1981,11 @@
                 let nextX = head.x + this.direction.x;
                 let nextY = head.y + this.direction.y;
                 let wrapped = false;
+                const isGhost = this.activePower && this.activePower.type === 'GHOST';
 
-                // Boundary handling
+                // Boundary handling (Ghost Phase lets the snake pass through solid lethal walls!)
                 if (nextX < 0 || nextX >= this.gridCount || nextY < 0 || nextY >= this.gridCount) {
-                    if (this.portalWalls) {
+                    if (this.portalWalls || isGhost) {
                         nextX = (nextX + this.gridCount) % this.gridCount;
                         nextY = (nextY + this.gridCount) % this.gridCount;
                         wrapped = true;
@@ -1526,11 +1995,13 @@
                     }
                 }
 
-                // Check Self-Collision (ignore tail tip as it moves forward this tick)
-                for (let i = 0; i < this.snake.length - 1; i++) {
-                    if (this.snake[i].x === nextX && this.snake[i].y === nextY) {
-                        this.triggerGameOver();
-                        return;
+                // Check Self-Collision (Skipped when Ghost Phase is active!)
+                if (!isGhost) {
+                    for (let i = 0; i < this.snake.length - 1; i++) {
+                        if (this.snake[i].x === nextX && this.snake[i].y === nextY) {
+                            this.triggerGameOver();
+                            return;
+                        }
                     }
                 }
 
@@ -1564,10 +2035,12 @@
                 }
 
                 // Check Special Bonus Item Consumption
-                if (this.bonusItem && nextX === this.bonusItem.x && nextY === this.bonusItem.y) {
+                if (this.bonusItem && nextX === this.bonusItem.x && this.bonusItem.y === nextY) {
                     this.handleEatBonus(this.bonusItem);
                     this.bonusItem = null;
                 }
+
+                this.updateDevConsoleUI();
             }
 
             handleEatFood(gx, gy) {
@@ -1639,17 +2112,36 @@
                     this.saveBestScore();
                     this.spawnFloatingText(px, py, `GOLDEN +${pts}!`, '#fbbf24');
                 } else if (item.id === 'SLOW') {
-                    this.activePower = { type: 'SLOW', name: 'CHRONO SHIFT', icon: '[SLOW]', color: '#38bdf8', timer: 7000, max: 7000 };
+                    this.activePower = { type: 'SLOW', name: 'CHRONO SHIFT', iconClass: 'fa-clock', color: '#38bdf8', timer: 7000, max: 7000 };
                     this.spawnFloatingText(px, py, 'CHRONO SHIFT!', '#38bdf8');
                 } else if (item.id === 'MAGNET') {
-                    this.activePower = { type: 'MAGNET', name: 'GRAVITY WELL', icon: '[MAG]', color: '#c084fc', timer: 8000, max: 8000 };
+                    this.activePower = { type: 'MAGNET', name: 'GRAVITY WELL', iconClass: 'fa-magnet', color: '#c084fc', timer: 8000, max: 8000 };
                     this.spawnFloatingText(px, py, 'GRAVITY MAGNET!', '#c084fc');
+                } else if (item.id === 'SHEARS') {
+                    // Instantly halve the snake's length to save you from tight corners
+                    const currentLength = this.snake.length;
+                    const cutLength = Math.floor(currentLength / 2);
+                    if (cutLength > 0 && currentLength > 2) {
+                        const tail = this.snake[this.snake.length - 1];
+                        const newLen = Math.max(2, currentLength - cutLength);
+                        this.snake.length = newLen;
+                        this.prevSnake.length = newLen;
+
+                        // Burst lime green particles where the tail was severed
+                        this.spawnParticles((tail.x + 0.5) * this.cellSize, (tail.y + 0.5) * this.cellSize, '#84cc16', 25, 1.8);
+                    }
+                    this.spawnFloatingText(px, py, 'DIMENSION SHEARS!', '#84cc16');
+                } else if (item.id === 'GHOST') {
+                    this.activePower = { type: 'GHOST', name: 'GHOST PHASE', iconClass: 'fa-ghost', color: '#f97316', timer: 8500, max: 8500 };
+                    this.spawnFloatingText(px, py, 'GHOST PHASE!', '#f97316');
                 }
 
                 this.updateHUD();
+                this.updateDevConsoleUI();
             }
 
             saveBestScore() {
+                if (this.devRunFlagged) return;
                 if (this.score > this.bestScore) {
                     this.bestScore = this.score;
                     localStorage.setItem('prismViperBest', String(this.bestScore));
@@ -1717,23 +2209,25 @@
                 this.lastFrameTime = now;
 
                 if (this.state === 'PLAYING') {
-                    this.updateTimers(dt);
+                    if (!this.devFreezeSim) {
+                        this.updateTimers(dt);
 
-                    // Handle Collision Coyote Time Grace Window
-                    if (this.coyoteTimer > 0) {
-                        this.coyoteTimer -= dt;
-                        if (this.coyoteTimer <= 0) {
-                            // Grace window expired without a perpendicular rescue turn
-                            this.coyoteTimer = 0;
-                            this.triggerGameOver();
-                        }
-                    } else {
-                        const stepInterval = this.getCurrentStepInterval();
-                        this.moveAccumulator += dt;
+                        // Handle Collision Coyote Time Grace Window
+                        if (this.coyoteTimer > 0) {
+                            this.coyoteTimer -= dt;
+                            if (this.coyoteTimer <= 0) {
+                                // Grace window expired without a perpendicular rescue turn
+                                this.coyoteTimer = 0;
+                                this.triggerGameOver();
+                            }
+                        } else {
+                            const stepInterval = this.getCurrentStepInterval();
+                            this.moveAccumulator += dt;
 
-                        while (this.moveAccumulator >= stepInterval && this.state === 'PLAYING' && this.coyoteTimer <= 0) {
-                            this.moveAccumulator -= stepInterval;
-                            this.stepSimulation();
+                            while (this.moveAccumulator >= stepInterval && this.state === 'PLAYING' && this.coyoteTimer <= 0) {
+                                this.moveAccumulator -= stepInterval;
+                                this.stepSimulation();
+                            }
                         }
                     }
                 }
@@ -1776,7 +2270,7 @@
                         banner.classList.add('hidden');
                     } else {
                         banner.classList.remove('hidden');
-                        document.getElementById('powerup-icon').textContent = this.activePower.icon;
+                        document.getElementById('powerup-icon').className = `fa-solid ${this.activePower.iconClass} text-sm`;
                         document.getElementById('powerup-name').textContent = this.activePower.name;
                         const bar = document.getElementById('powerup-bar');
                         bar.style.width = `${(this.activePower.timer / this.activePower.max) * 100}%`;
@@ -2083,13 +2577,83 @@
                 ctx.arc(0, 0, radius, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Center crisp icon
+                // Custom Vector Icons for Power-ups
                 ctx.shadowBlur = 0;
                 ctx.fillStyle = '#090d16';
-                ctx.font = `bold ${Math.floor(this.cellSize * 0.46)}px sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(this.bonusItem.icon, 0, 1);
+                ctx.strokeStyle = '#090d16';
+                ctx.lineWidth = 1.5;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                
+                const r = this.cellSize * 0.22;
+                
+                if (this.bonusItem.id === 'GOLD') {
+                    // Star Icon
+                    ctx.beginPath();
+                    for (let i = 0; i < 5; i++) {
+                        const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+                        const x = Math.cos(angle) * r * 1.1;
+                        const y = Math.sin(angle) * r * 1.1;
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                } else if (this.bonusItem.id === 'SLOW') {
+                    // Hourglass Icon
+                    ctx.beginPath();
+                    ctx.moveTo(-r*0.6, -r*0.7);
+                    ctx.lineTo(r*0.6, -r*0.7);
+                    ctx.lineTo(-r*0.6, r*0.7);
+                    ctx.lineTo(r*0.6, r*0.7);
+                    ctx.closePath();
+                    ctx.fill();
+                } else if (this.bonusItem.id === 'MAGNET') {
+                    // Horseshoe Magnet Icon
+                    ctx.beginPath();
+                    ctx.arc(0, r*0.2, r*0.7, Math.PI, 0);
+                    ctx.lineTo(r*0.7, -r*0.7);
+                    ctx.lineTo(r*0.3, -r*0.7);
+                    ctx.lineTo(r*0.3, r*0.2);
+                    ctx.arc(0, r*0.2, r*0.3, 0, Math.PI, true);
+                    ctx.lineTo(-r*0.3, -r*0.7);
+                    ctx.lineTo(-r*0.7, -r*0.7);
+                    ctx.closePath();
+                    ctx.fill();
+                } else if (this.bonusItem.id === 'SHEARS') {
+                    // Crisp Open Scissors Icon
+                    ctx.beginPath();
+                    ctx.moveTo(-r * 0.2, -r * 0.85);
+                    ctx.lineTo(r * 0.55, r * 0.35);
+                    ctx.moveTo(r * 0.2, -r * 0.85);
+                    ctx.lineTo(-r * 0.55, r * 0.35);
+                    ctx.lineWidth = 2.2;
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.arc(-r * 0.45, r * 0.55, r * 0.32, 0, Math.PI * 2);
+                    ctx.arc(r * 0.45, r * 0.55, r * 0.32, 0, Math.PI * 2);
+                    ctx.lineWidth = 1.8;
+                    ctx.stroke();
+                } else if (this.bonusItem.id === 'GHOST') {
+                    // Classic Arcade Ghost Silhouette + Eyes
+                    ctx.beginPath();
+                    ctx.arc(0, -r * 0.18, r * 0.72, Math.PI, 0, false);
+                    ctx.lineTo(r * 0.72, r * 0.75);
+                    ctx.lineTo(r * 0.36, r * 0.48);
+                    ctx.lineTo(0, r * 0.75);
+                    ctx.lineTo(-r * 0.36, r * 0.48);
+                    ctx.lineTo(-r * 0.72, r * 0.75);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Glowing Ghost Eyes
+                    ctx.fillStyle = this.bonusItem.color;
+                    ctx.beginPath();
+                    ctx.arc(-r * 0.26, -r * 0.18, r * 0.18, 0, Math.PI * 2);
+                    ctx.arc(r * 0.26, -r * 0.18, r * 0.18, 0, Math.PI * 2);
+                    ctx.fill();
+                }
 
                 ctx.restore();
             }
@@ -2098,6 +2662,7 @@
                 const ctx = this.ctx;
                 const pts = this.getInterpolatedSnake(alpha);
                 if (pts.length === 0) return;
+                const isGhost = this.activePower && this.activePower.type === 'GHOST';
 
                 // Spawn subtle tail trail particles while moving
                 const tail = pts[pts.length - 1];
@@ -2106,7 +2671,7 @@
                         x: tail.x + (Math.random() - 0.5) * (this.cellSize * 0.35),
                         y: tail.y + (Math.random() - 0.5) * (this.cellSize * 0.35),
                         size: this.cellSize * 0.16,
-                        color: this.getSegmentColor(pts.length - 1, pts.length),
+                        color: isGhost ? '#f97316' : this.getSegmentColor(pts.length - 1, pts.length),
                         alpha: 0.55
                     });
                 }
@@ -2117,11 +2682,14 @@
                     // Taper tail smoothly
                     const taper = i > pts.length - 4 ? 0.65 + ((pts.length - 1 - i) / 4) * 0.35 : 1;
                     const segRadius = (this.cellSize * 0.43) * taper;
-                    const color = i === 0 ? this.theme.snakeHead : this.getSegmentColor(i, pts.length);
+                    const color = i === 0 ? this.theme.snakeHead : (isGhost ? '#fb923c' : this.getSegmentColor(i, pts.length));
 
                     ctx.save();
+                    if (isGhost && i > 0) {
+                        ctx.globalAlpha = 0.48 + Math.sin(now * 0.015 + i * 0.4) * 0.15;
+                    }
                     ctx.fillStyle = color;
-                    ctx.shadowColor = i === 0 ? this.theme.accent : color;
+                    ctx.shadowColor = isGhost ? '#f97316' : (i === 0 ? this.theme.accent : color);
                     ctx.shadowBlur = i === 0 ? 18 : 10;
 
                     // Draw connector bridge to previous segment if not wrapped across portal
@@ -2190,6 +2758,16 @@
                     ctx.globalAlpha = 0.45 + Math.sin(now * 0.01) * 0.25;
                     ctx.beginPath();
                     ctx.arc(0, 0, this.cellSize * 1.15, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                // Spectral Orange Ghost phase ring around head when active
+                if (isGhost) {
+                    ctx.strokeStyle = '#f97316';
+                    ctx.lineWidth = 1.8;
+                    ctx.globalAlpha = 0.55 + Math.sin(now * 0.016) * 0.25;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.cellSize * 1.05, 0, Math.PI * 2);
                     ctx.stroke();
                 }
 
